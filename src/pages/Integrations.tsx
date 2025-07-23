@@ -126,10 +126,23 @@ const Integrations = () => {
   const fetchUsers = async () => {
     try {
       const response = await fetch('http://localhost:8000/users');
-      const data = await response.json();
-      setUsers(data);
+      if (response.ok) {
+        const data = await response.json();
+        // Garantir que data é um array
+        if (Array.isArray(data)) {
+          setUsers(data);
+        } else {
+          console.warn('Resposta de usuários não é um array:', data);
+          setUsers([]);
+        }
+      } else {
+        console.warn('Endpoint /users não encontrado, usando array vazio');
+        setUsers([]);
+      }
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
+      // Manter users como array vazio em caso de erro
+      setUsers([]);
     }
   };
 
