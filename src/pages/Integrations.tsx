@@ -528,71 +528,73 @@ const Integrations = () => {
 
         {/* OAuth Integration Dialog */}
         <Dialog open={isOAuthDialogOpen} onOpenChange={setIsOAuthDialogOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center justify-center">
-                <img 
-                  src="/api/placeholder/40/40" 
-                  alt="DashboardAI" 
-                  className="h-8 w-8 mr-2"
-                />
-                DashboardAI
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader className="text-center">
+              <div className="flex items-center justify-center mb-4">
+                <div className="bg-blue-600 p-3 rounded-full">
+                  <Facebook className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <DialogTitle className="text-xl font-semibold">
+                Conectar {selectedIntegrationType?.name}
               </DialogTitle>
+              <DialogDescription className="text-gray-600 dark:text-gray-400 mt-2">
+                Escolha como deseja conectar sua conta {selectedIntegrationType?.name} para importar dados de campanhas
+              </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-6 text-center">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  Conectar {selectedIntegrationType?.name}
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Escolha como deseja conectar sua conta {selectedIntegrationType?.name}
-                </p>
+            <div className="space-y-4 mt-6">
+              <Button 
+                onClick={handleFacebookOAuth}
+                disabled={isImporting}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 text-base font-medium rounded-lg"
+                size="lg"
+              >
+                <Globe className="h-5 w-5 mr-3" />
+                {isImporting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                    Conectando...
+                  </>
+                ) : (
+                  'Continuar neste navegador'
+                )}
+              </Button>
+              
+              <p className="text-sm text-center text-gray-500 dark:text-gray-400 px-4">
+                Será aberta uma nova janela para autenticação segura com o Facebook
+              </p>
+              
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-background px-4 text-gray-500 dark:text-gray-400 font-medium">OU</span>
+                </div>
               </div>
               
-              <div className="space-y-3">
-                <Button 
-                  onClick={handleFacebookOAuth}
-                  disabled={isImporting}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-sm font-medium"
-                >
-                  <Globe className="h-4 w-4 mr-2" />
-                  {isImporting ? 'Importando contas...' : 'Continuar neste navegador'}
-                </Button>
-                
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Conecte sua conta {selectedIntegrationType?.name} diretamente neste navegador
-                </p>
-                
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="bg-background px-2 text-gray-500 dark:text-gray-400">ou</span>
-                  </div>
-                </div>
-                
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    const oauthUrl = FacebookOAuthService.getOAuthUrl();
-                    navigator.clipboard.writeText(oauthUrl);
-                    toast({
-                      title: "Link copiado!",
-                      description: "Cole o link em outro navegador para conectar.",
-                    });
-                  }}
-                  className="w-full py-3 text-sm font-medium"
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Copiar link para navegador multilogin
-                </Button>
-                
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Gere um link para conectar em outro navegador ou compartilhar com colaboradores
-                </p>
-              </div>
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  const oauthUrl = FacebookOAuthService.getOAuthUrl();
+                  navigator.clipboard.writeText(oauthUrl);
+                  toast({
+                    title: "Link copiado!",
+                    description: "Cole o link em outro navegador para conectar sua conta.",
+                  });
+                }}
+                className="w-full py-4 text-base font-medium rounded-lg border-2"
+                size="lg"
+                disabled={isImporting}
+              >
+                <Settings className="h-5 w-5 mr-3" />
+                Copiar link para navegador multilogin
+              </Button>
+              
+              <p className="text-xs text-center text-gray-500 dark:text-gray-400 px-4">
+                Use esta opção para conectar em um navegador com múltiplas contas ou compartilhar com colaboradores
+              </p>
             </div>
           </DialogContent>
         </Dialog>
