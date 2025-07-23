@@ -362,33 +362,7 @@ const Integrations = () => {
 
       window.addEventListener('message', handleMessage);
       
-      // Verificar se popup foi fechado - usando tentativa de acesso à janela
-      checkClosedInterval = setInterval(() => {
-        try {
-          // Tenta acessar a propriedade location da janela
-          // Se a janela foi fechada, isso vai dar erro
-          if (popup.closed || !popup.location || popup.location.href === 'about:blank') {
-            if (!isComplete) {
-              cleanup();
-              toast({
-                title: "Integração cancelada",
-                description: "A janela de autenticação foi fechada.",
-                variant: "destructive",
-              });
-            }
-          }
-        } catch (error) {
-          // Se der erro ao acessar a janela, significa que ela foi fechada ou mudou de domínio
-          if (!isComplete) {
-            cleanup();
-            toast({
-              title: "Integração cancelada", 
-              description: "A janela de autenticação foi fechada.",
-              variant: "destructive",
-            });
-          }
-        }
-      }, 1000);
+      // Sem detecção automática - apenas controle manual via botão Cancelar
 
       // Timeout de segurança (2 minutos)
       timeoutId = setTimeout(() => {
