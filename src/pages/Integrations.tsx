@@ -318,13 +318,26 @@ const Integrations = () => {
         throw new Error('Popup bloqueado pelo navegador');
       }
 
+      let isComplete = false;
+
+      // Cleanup function
+      const cleanup = () => {
+        if (!isComplete) {
+          isComplete = true;
+          setIsImporting(false);
+          window.removeEventListener('message', handleMessage);
+          if (checkClosedInterval) clearInterval(checkClosedInterval);
+          if (timeoutId) clearTimeout(timeoutId);
+        }
+      };
+
       // Aguardar mensagem do callback
       const handleMessage = (event: MessageEvent) => {
-        if (event.origin !== window.location.origin) return;
+        if (event.origin !== window.location.origin || isComplete) return;
         
         if (event.data.type === 'OAUTH_SUCCESS') {
-          window.removeEventListener('message', handleMessage);
-          setIsImporting(false);
+          isComplete = true;
+          cleanup();
           
           toast({
             title: "Integração concluída!",
@@ -335,8 +348,8 @@ const Integrations = () => {
           fetchIntegrations();
           
         } else if (event.data.type === 'OAUTH_ERROR') {
-          window.removeEventListener('message', handleMessage);
-          setIsImporting(false);
+          isComplete = true;
+          cleanup();
           
           toast({
             title: "Erro na integração",
@@ -349,21 +362,29 @@ const Integrations = () => {
       window.addEventListener('message', handleMessage);
       
       // Verificar se popup foi fechado manualmente
-      const checkClosed = setInterval(() => {
-        if (popup.closed) {
-          clearInterval(checkClosed);
-          window.removeEventListener('message', handleMessage);
-          
-          if (isImporting) {
-            setIsImporting(false);
-            toast({
-              title: "Integração cancelada",
-              description: "A janela de autenticação foi fechada.",
-              variant: "destructive",
-            });
-          }
+      const checkClosedInterval = setInterval(() => {
+        if (popup.closed && !isComplete) {
+          cleanup();
+          toast({
+            title: "Integração cancelada",
+            description: "A janela de autenticação foi fechada.",
+            variant: "destructive",
+          });
         }
-      }, 1000);
+      }, 500);
+
+      // Timeout de segurança (2 minutos)
+      const timeoutId = setTimeout(() => {
+        if (!isComplete) {
+          cleanup();
+          if (!popup.closed) popup.close();
+          toast({
+            title: "Timeout na integração",
+            description: "A autenticação demorou muito para ser concluída.",
+            variant: "destructive",
+          });
+        }
+      }, 120000);
       
     } catch (error) {
       setIsImporting(false);
