@@ -173,6 +173,34 @@ const Integrations = () => {
     fetchUsers();
   }, []);
 
+  // Limpar estado de importação quando o componente for desmontado
+  useEffect(() => {
+    return () => {
+      setIsImporting(false);
+    };
+  }, []);
+
+  // Limpar estado de importação quando a página for fechada/recarregada
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      setIsImporting(false);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && isImporting) {
+        setIsImporting(false);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isImporting]);
+
 
   const handleAddIntegration = (type: typeof integrationTypes[0]) => {
     setSelectedIntegrationType(type);
