@@ -322,18 +322,32 @@ const Integrations = () => {
       let isComplete = false;
       let timeoutId: NodeJS.Timeout;
 
-      // Detectar quando usuário volta para esta janela (indica que fechou o login)
+      // Detectar quando usuário volta para esta janela (mais agressivo)
       const handleWindowFocus = () => {
-        setTimeout(() => {
-          if (!isComplete && isImporting) {
-            performCleanup();
-            toast({
-              title: "Integração cancelada",
-              description: "A janela de autenticação foi fechada.",
-              variant: "destructive",
-            });
-          }
-        }, 1000); // Delay para evitar falsos positivos
+        if (!isComplete && isImporting) {
+          performCleanup();
+          toast({
+            title: "Integração cancelada",
+            description: "A janela de autenticação foi fechada.",
+            variant: "destructive",
+          });
+        }
+      };
+
+      // Detectar quando a janela fica visível novamente
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible' && !isComplete && isImporting) {
+          setTimeout(() => {
+            if (!isComplete && isImporting) {
+              performCleanup();
+              toast({
+                title: "Integração cancelada",
+                description: "A janela de autenticação foi fechada.",
+                variant: "destructive",
+              });
+            }
+          }, 500);
+        }
       };
 
       // Cleanup function
@@ -343,6 +357,7 @@ const Integrations = () => {
           setIsImporting(false);
           window.removeEventListener('message', handleMessage);
           window.removeEventListener('focus', handleWindowFocus);
+          document.removeEventListener('visibilitychange', handleVisibilityChange);
           if (timeoutId) clearTimeout(timeoutId);
         }
       };
@@ -375,19 +390,20 @@ const Integrations = () => {
 
       window.addEventListener('message', handleMessage);
       window.addEventListener('focus', handleWindowFocus);
+      document.addEventListener('visibilitychange', handleVisibilityChange);
 
-      // Timeout de segurança (2 minutos)
+      // Timeout de segurança (30 segundos - mais prático)
       timeoutId = setTimeout(() => {
         if (!isComplete) {
           performCleanup();
           if (!popup.closed) popup.close();
           toast({
-            title: "Timeout na integração",
-            description: "A autenticação demorou muito para ser concluída.",
+            title: "Integração cancelada",
+            description: "A autenticação foi cancelada automaticamente.",
             variant: "destructive",
           });
         }
-      }, 120000);
+      }, 30000);
       
     } catch (error) {
       setIsImporting(false);
