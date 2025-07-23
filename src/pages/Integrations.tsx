@@ -315,10 +315,13 @@ const Integrations = () => {
       const popup = window.open(oauthUrl, 'facebook-oauth', 'width=500,height=600,scrollbars=yes,resizable=yes');
       
       if (!popup) {
+        setIsImporting(false);
         throw new Error('Popup bloqueado pelo navegador');
       }
 
       let isComplete = false;
+      let checkClosedInterval: NodeJS.Timeout;
+      let timeoutId: NodeJS.Timeout;
 
       // Cleanup function
       const cleanup = () => {
@@ -336,7 +339,6 @@ const Integrations = () => {
         if (event.origin !== window.location.origin || isComplete) return;
         
         if (event.data.type === 'OAUTH_SUCCESS') {
-          isComplete = true;
           cleanup();
           
           toast({
@@ -348,7 +350,6 @@ const Integrations = () => {
           fetchIntegrations();
           
         } else if (event.data.type === 'OAUTH_ERROR') {
-          isComplete = true;
           cleanup();
           
           toast({
@@ -362,7 +363,7 @@ const Integrations = () => {
       window.addEventListener('message', handleMessage);
       
       // Verificar se popup foi fechado manualmente
-      const checkClosedInterval = setInterval(() => {
+      checkClosedInterval = setInterval(() => {
         if (popup.closed && !isComplete) {
           cleanup();
           toast({
@@ -374,7 +375,7 @@ const Integrations = () => {
       }, 500);
 
       // Timeout de segurança (2 minutos)
-      const timeoutId = setTimeout(() => {
+      timeoutId = setTimeout(() => {
         if (!isComplete) {
           cleanup();
           if (!popup.closed) popup.close();
