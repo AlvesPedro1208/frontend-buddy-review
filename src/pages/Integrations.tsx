@@ -98,6 +98,8 @@ const Integrations = () => {
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [isOAuthDialogOpen, setIsOAuthDialogOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<string>('all');
+  const [users, setUsers] = useState<Array<{id: string, name: string, email: string}>>([]);
 
   const getStatusIcon = (status: Integration['status']) => {
     switch (status) {
@@ -118,6 +120,16 @@ const Integrations = () => {
         return <Badge variant="secondary">Desconectado</Badge>;
       case 'error':
         return <Badge className="bg-red-100 text-red-800">Erro</Badge>;
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/users');
+      const data = await response.json();
+      setUsers(data);
+    } catch (error) {
+      console.error("Erro ao buscar usuários:", error);
     }
   };
 
@@ -145,6 +157,7 @@ const Integrations = () => {
 
   useEffect(() => {
     fetchIntegrations();
+    fetchUsers();
   }, []);
 
 
@@ -387,13 +400,43 @@ const Integrations = () => {
           })}
         </div>
 
+        {/* User Filter */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Integrações Ativas
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Visualize e gerencie suas conexões ativas
+            </p>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <label htmlFor="user-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Filtrar por usuário:
+            </label>
+            <select
+              id="user-filter"
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[200px] z-10"
+            >
+              <option value="all">Todos os usuários</option>
+              {users.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name} ({user.email})
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         {/* Active Integrations */}
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Integrações Ativas
-          </h2>
           
-          {integrations.length === 0 ? (
+          {integrations.filter(integration => 
+            selectedUser === 'all' || integration.accountId?.includes(selectedUser)
+          ).length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center">
                 <div className="text-gray-400 mb-4">
@@ -403,13 +446,18 @@ const Integrations = () => {
                   Nenhuma integração configurada
                 </h3>
                 <p className="text-gray-500 dark:text-gray-400">
-                  Adicione sua primeira integração clicando em uma das opções acima
+                  {selectedUser === 'all' 
+                    ? 'Adicione sua primeira integração clicando em uma das opções acima'
+                    : 'Nenhuma integração encontrada para este usuário'
+                  }
                 </p>
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-4">
-              {integrations.map((integration) => {
+              {integrations.filter(integration => 
+                selectedUser === 'all' || integration.accountId?.includes(selectedUser)
+              ).map((integration) => {
                 const integationType = integrationTypes.find(t => t.type === integration.type);
                 const Icon = integationType?.icon || Settings;
                 
