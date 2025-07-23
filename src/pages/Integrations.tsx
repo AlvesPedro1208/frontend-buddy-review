@@ -26,6 +26,7 @@ import {
   XCircle,
   AlertCircle
 } from 'lucide-react';
+import { FacebookOAuthService } from '@/services/oauth';
 import { useToast } from '@/hooks/use-toast';
 import { ProductLayout } from '@/components/ProductLayout';
 
@@ -95,6 +96,8 @@ const Integrations = () => {
   const [selectedIntegrationType, setSelectedIntegrationType] = useState<typeof integrationTypes[0] | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState<Record<string, string>>({});
+  const [isOAuthDialogOpen, setIsOAuthDialogOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   const getStatusIcon = (status: Integration['status']) => {
     switch (status) {
@@ -241,6 +244,105 @@ const Integrations = () => {
     return new Date(date).toLocaleString('pt-BR');
   };
 
+  // OAuth Functions
+  const handleOAuthIntegration = (type: typeof integrationTypes[0]) => {
+    setSelectedIntegrationType(type);
+    setIsOAuthDialogOpen(true);
+  };
+
+  const handleFacebookOAuth = async () => {
+    setIsImporting(true);
+    setIsOAuthDialogOpen(false);
+    
+    try {
+      const oauthUrl = FacebookOAuthService.getOAuthUrl();
+      
+      // Abrir popup para OAuth
+      const popup = window.open(oauthUrl, 'facebook-oauth', 'width=500,height=600,scrollbars=yes,resizable=yes');
+      
+      if (!popup) {
+        throw new Error('Popup bloqueado pelo navegador');
+      }
+
+      // Aguardar mensagem do callback
+      const handleMessage = (event: MessageEvent) => {
+        if (event.origin !== window.location.origin) return;
+        
+        if (event.data.type === 'OAUTH_SUCCESS') {
+          window.removeEventListener('message', handleMessage);
+          setIsImporting(false);
+          
+          toast({
+            title: "Integração concluída!",
+            description: `${event.data.data.accounts.length} contas importadas com sucesso.`,
+          });
+          
+          // Recarregar integrações
+          fetchIntegrations();
+          
+        } else if (event.data.type === 'OAUTH_ERROR') {
+          window.removeEventListener('message', handleMessage);
+          setIsImporting(false);
+          
+          toast({
+            title: "Erro na integração",
+            description: event.data.error?.message || "Não foi possível conectar com o Facebook.",
+            variant: "destructive",
+          });
+        }
+      };
+
+      window.addEventListener('message', handleMessage);
+      
+      // Verificar se popup foi fechado manualmente
+      const checkClosed = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(checkClosed);
+          window.removeEventListener('message', handleMessage);
+          
+          if (isImporting) {
+            setIsImporting(false);
+            toast({
+              title: "Integração cancelada",
+              description: "A janela de autenticação foi fechada.",
+              variant: "destructive",
+            });
+          }
+        }
+      }, 1000);
+      
+    } catch (error) {
+      setIsImporting(false);
+      toast({
+        title: "Erro na integração",
+        description: error instanceof Error ? error.message : "Não foi possível conectar com o Facebook.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleImportFacebookAccounts = async (accessToken: string) => {
+    try {
+      const response = await fetch('http://localhost:8000/oauth/facebook/import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ access_token: accessToken }),
+      });
+      
+      if (response.ok) {
+        await fetchIntegrations();
+        toast({
+          title: "Contas importadas!",
+          description: "Todas as contas do Facebook foram importadas com sucesso.",
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao importar contas:', error);
+    }
+  };
+
   return (
     <ProductLayout title="Integrações de API">
       <div className="space-y-6">
@@ -256,11 +358,13 @@ const Integrations = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {integrationTypes.map((type) => {
             const Icon = type.icon;
+            const isFacebook = type.type === 'facebook';
+            
             return (
               <Card 
                 key={type.type} 
                 className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => handleAddIntegration(type)}
+                onClick={() => isFacebook ? handleOAuthIntegration(type) : handleAddIntegration(type)}
               >
                 <CardContent className="p-4">
                   <div className="flex items-center space-x-3">
@@ -272,7 +376,7 @@ const Integrations = () => {
                         {type.name}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {type.description}
+                        {isFacebook ? 'Conecte suas contas automaticamente' : type.description}
                       </p>
                     </div>
                     <Plus className="h-4 w-4 text-gray-400" />
@@ -360,6 +464,88 @@ const Integrations = () => {
             </div>
           )}
         </div>
+
+        {/* OAuth Integration Dialog */}
+        <Dialog open={isOAuthDialogOpen} onOpenChange={setIsOAuthDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-center">
+                <img 
+                  src="/api/placeholder/40/40" 
+                  alt="DashboardAI" 
+                  className="h-8 w-8 mr-2"
+                />
+                DashboardAI
+              </DialogTitle>
+            </DialogHeader>
+            
+            <div className="space-y-6 text-center">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Conectar {selectedIntegrationType?.name}
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Escolha como deseja conectar sua conta {selectedIntegrationType?.name}
+                </p>
+              </div>
+              
+              <div className="space-y-3">
+                <Button 
+                  onClick={handleFacebookOAuth}
+                  disabled={isImporting}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-sm font-medium"
+                >
+                  <Globe className="h-4 w-4 mr-2" />
+                  {isImporting ? 'Importando contas...' : 'Continuar neste navegador'}
+                </Button>
+                
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Conecte sua conta {selectedIntegrationType?.name} diretamente neste navegador
+                </p>
+                
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="bg-background px-2 text-gray-500 dark:text-gray-400">ou</span>
+                  </div>
+                </div>
+                
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    const oauthUrl = FacebookOAuthService.getOAuthUrl();
+                    navigator.clipboard.writeText(oauthUrl);
+                    toast({
+                      title: "Link copiado!",
+                      description: "Cole o link em outro navegador para conectar.",
+                    });
+                  }}
+                  className="w-full py-3 text-sm font-medium"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Copiar link para navegador multilogin
+                </Button>
+                
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Gere um link para conectar em outro navegador ou compartilhar com colaboradores
+                </p>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Loading Overlay */}
+        {isImporting && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-900 dark:text-white font-medium">Importando contas...</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">Aguarde enquanto importamos suas contas do Facebook</p>
+            </div>
+          </div>
+        )}
 
         {/* Add Integration Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
