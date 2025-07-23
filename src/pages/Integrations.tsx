@@ -322,9 +322,11 @@ const Integrations = () => {
       let isComplete = false;
       let timeoutId: NodeJS.Timeout;
 
-      // Detectar quando usuário volta para esta janela (mais agressivo)
+      // Detectar quando usuário volta para esta janela (indica que fechou o Facebook)
       const handleWindowFocus = () => {
+        console.log('Window focus detected, checking if should cancel...');
         if (!isComplete && isImporting) {
+          console.log('Cancelling import due to window focus');
           performCleanup();
           toast({
             title: "Integração cancelada",
@@ -334,21 +336,46 @@ const Integrations = () => {
         }
       };
 
-      // Detectar quando a janela fica visível novamente
+      // Detectar quando a janela fica visível novamente  
       const handleVisibilityChange = () => {
+        console.log('Visibility change:', document.visibilityState);
         if (document.visibilityState === 'visible' && !isComplete && isImporting) {
-          setTimeout(() => {
-            if (!isComplete && isImporting) {
-              performCleanup();
-              toast({
-                title: "Integração cancelada",
-                description: "A janela de autenticação foi fechada.",
-                variant: "destructive",
-              });
-            }
-          }, 500);
+          console.log('Cancelling import due to visibility change');
+          performCleanup();
+          toast({
+            title: "Integração cancelada",
+            description: "A janela de autenticação foi fechada.",
+            variant: "destructive",
+          });
         }
       };
+
+      // Detectar mudanças no popup a cada segundo
+      const checkPopupStatus = setInterval(() => {
+        try {
+          if (!isComplete && (popup.closed || !popup.window)) {
+            console.log('Popup detected as closed');
+            clearInterval(checkPopupStatus);
+            performCleanup();
+            toast({
+              title: "Integração cancelada",
+              description: "A janela de autenticação foi fechada.",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.log('Error checking popup, assuming closed');
+          clearInterval(checkPopupStatus);
+          if (!isComplete) {
+            performCleanup();
+            toast({
+              title: "Integração cancelada",
+              description: "A janela de autenticação foi fechada.",
+              variant: "destructive",
+            });
+          }
+        }
+      }, 1000);
 
       // Cleanup function
       const performCleanup = () => {
@@ -358,6 +385,7 @@ const Integrations = () => {
           window.removeEventListener('message', handleMessage);
           window.removeEventListener('focus', handleWindowFocus);
           document.removeEventListener('visibilitychange', handleVisibilityChange);
+          clearInterval(checkPopupStatus);
           if (timeoutId) clearTimeout(timeoutId);
         }
       };
