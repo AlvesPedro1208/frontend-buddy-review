@@ -227,7 +227,7 @@ const Integrations = () => {
       await fetch(`http://localhost:8000/contas/${id}`, {
         method: 'DELETE',
       });
-      setIntegrations(prev => prev.filter(integration => integration.id !== id));
+      setIntegrations(prev => prev.filter(integration => integration.id !== String(id)));
     } catch (error) {
       toast({
         title: "Erro",
@@ -346,7 +346,7 @@ const Integrations = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDeleteIntegration(integration.id)}
+                            onClick={() => handleDeleteIntegration(Number(integration.id))}
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
                             <Trash2 className="h-4 w-4" />
