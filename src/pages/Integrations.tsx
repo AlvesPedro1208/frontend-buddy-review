@@ -320,16 +320,29 @@ const Integrations = () => {
       }
 
       let isComplete = false;
-      let checkClosedInterval: NodeJS.Timeout;
       let timeoutId: NodeJS.Timeout;
 
+      // Detectar quando usuário volta para esta janela (indica que fechou o login)
+      const handleWindowFocus = () => {
+        setTimeout(() => {
+          if (!isComplete && isImporting) {
+            performCleanup();
+            toast({
+              title: "Integração cancelada",
+              description: "A janela de autenticação foi fechada.",
+              variant: "destructive",
+            });
+          }
+        }, 1000); // Delay para evitar falsos positivos
+      };
+
       // Cleanup function
-      const cleanup = () => {
+      const performCleanup = () => {
         if (!isComplete) {
           isComplete = true;
           setIsImporting(false);
           window.removeEventListener('message', handleMessage);
-          if (checkClosedInterval) clearInterval(checkClosedInterval);
+          window.removeEventListener('focus', handleWindowFocus);
           if (timeoutId) clearTimeout(timeoutId);
         }
       };
@@ -339,7 +352,7 @@ const Integrations = () => {
         if (event.origin !== window.location.origin || isComplete) return;
         
         if (event.data.type === 'OAUTH_SUCCESS') {
-          cleanup();
+          performCleanup();
           
           toast({
             title: "Integração concluída!",
@@ -350,7 +363,7 @@ const Integrations = () => {
           fetchIntegrations();
           
         } else if (event.data.type === 'OAUTH_ERROR') {
-          cleanup();
+          performCleanup();
           
           toast({
             title: "Erro na integração",
@@ -361,13 +374,12 @@ const Integrations = () => {
       };
 
       window.addEventListener('message', handleMessage);
-      
-      // Sem detecção automática - apenas controle manual via botão Cancelar
+      window.addEventListener('focus', handleWindowFocus);
 
       // Timeout de segurança (2 minutos)
       timeoutId = setTimeout(() => {
         if (!isComplete) {
-          cleanup();
+          performCleanup();
           if (!popup.closed) popup.close();
           toast({
             title: "Timeout na integração",
