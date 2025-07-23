@@ -362,25 +362,8 @@ const Integrations = () => {
 
       window.addEventListener('message', handleMessage);
       
-      // Verificar se popup foi fechado manualmente
-      checkClosedInterval = setInterval(() => {
-        try {
-          const isClosed = popup.closed;
-          console.log('Popup status check:', { isClosed, isComplete });
-          
-          if (isClosed && !isComplete) {
-            console.log('Popup foi fechado, executando cleanup');
-            cleanup();
-            toast({
-              title: "Integração cancelada",
-              description: "A janela de autenticação foi fechada.",
-              variant: "destructive",
-            });
-          }
-        } catch (error) {
-          console.error('Erro ao verificar status do popup:', error);
-        }
-      }, 1000);
+      // Remover detecção automática de fechamento pois popup.closed é não confiável
+      // Usuário pode cancelar manualmente via botão no modal
 
       // Timeout de segurança (2 minutos)
       timeoutId = setTimeout(() => {
@@ -660,10 +643,19 @@ const Integrations = () => {
         {/* Loading Overlay */}
         {isImporting && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg text-center max-w-sm mx-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-900 dark:text-white font-medium">Importando contas...</p>
-              <p className="text-gray-600 dark:text-gray-400 text-sm mt-2">Aguarde enquanto importamos suas contas do Facebook</p>
+              <p className="text-gray-900 dark:text-white font-medium mb-2">Importando contas...</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">Aguarde enquanto importamos suas contas do Facebook</p>
+              
+              <Button 
+                variant="outline" 
+                onClick={() => setIsImporting(false)}
+                className="w-full"
+                size="sm"
+              >
+                Cancelar
+              </Button>
             </div>
           </div>
         )}
