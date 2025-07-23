@@ -364,15 +364,23 @@ const Integrations = () => {
       
       // Verificar se popup foi fechado manualmente
       checkClosedInterval = setInterval(() => {
-        if (popup.closed && !isComplete) {
-          cleanup();
-          toast({
-            title: "Integração cancelada",
-            description: "A janela de autenticação foi fechada.",
-            variant: "destructive",
-          });
+        try {
+          const isClosed = popup.closed;
+          console.log('Popup status check:', { isClosed, isComplete });
+          
+          if (isClosed && !isComplete) {
+            console.log('Popup foi fechado, executando cleanup');
+            cleanup();
+            toast({
+              title: "Integração cancelada",
+              description: "A janela de autenticação foi fechada.",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error('Erro ao verificar status do popup:', error);
         }
-      }, 500);
+      }, 1000);
 
       // Timeout de segurança (2 minutos)
       timeoutId = setTimeout(() => {
