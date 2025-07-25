@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { AppSidebar } from '@/components/AppSidebar';
 import { DashboardGrid } from '@/components/DashboardGrid';
 import { useDashboardLayout, DashboardItem } from '@/hooks/useDashboardLayout';
@@ -353,221 +354,232 @@ const Product = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-slate-50 dark:bg-gray-900 transition-colors">
-        <AppSidebar />
-        
-        <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 transition-colors">
-            <div className="flex items-center justify-between max-w-7xl mx-auto">
-              <div className="flex items-center space-x-4">
-                <SidebarTrigger className="md:hidden">
-                  <Menu className="h-4 w-4" />
-                </SidebarTrigger>
-                <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  DashboardAI
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">Analytics Dashboard</div>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                {/* Dark Mode Toggle */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleDarkMode}
-                  className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  {isDarkMode ? (
-                    <Sun className="h-4 w-4 text-yellow-500" />
-                  ) : (
-                    <Moon className="h-4 w-4 text-gray-600" />
-                  )}
-                </Button>
-
-                {/* Voltar Button */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate('/')}
-                  className="h-9 px-3 hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Voltar
-                </Button>
-
-                <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
-                      <Upload className="w-4 h-4 mr-2" />
-                      Nova Planilha
+        <ResizablePanelGroup direction="horizontal" className="min-h-screen">
+          <ResizablePanel defaultSize={16} minSize={12} maxSize={25}>
+            <AppSidebar />
+          </ResizablePanel>
+          
+          <ResizableHandle withHandle />
+          
+          {/* Main Content Panel */}
+          <ResizablePanel defaultSize={60} minSize={40}>
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 transition-colors">
+                <div className="flex items-center justify-between max-w-7xl mx-auto">
+                  <div className="flex items-center space-x-4">
+                    <SidebarTrigger className="md:hidden">
+                      <Menu className="h-4 w-4" />
+                    </SidebarTrigger>
+                    <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                      DashboardAI
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">Analytics Dashboard</div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3">
+                    {/* Dark Mode Toggle */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={toggleDarkMode}
+                      className="h-9 w-9 p-0 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      {isDarkMode ? (
+                        <Sun className="h-4 w-4 text-yellow-500" />
+                      ) : (
+                        <Moon className="h-4 w-4 text-gray-600" />
+                      )}
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md dark:bg-gray-800 dark:border-gray-700">
-                    <DialogHeader>
-                      <DialogTitle className="dark:text-white">Carregar Nova Planilha</DialogTitle>
-                      <DialogDescription className="dark:text-gray-300">
-                        Escolha como você gostaria de adicionar sua planilha para análise.
-                      </DialogDescription>
-                    </DialogHeader>
-                    
-                    <div className="space-y-4">
-                      {/* Toggle between file, URL and API */}
-                      <div className="grid grid-cols-3 gap-2">
-                        <Button
-                          variant={uploadType === 'file' ? 'default' : 'outline'}
-                          onClick={() => setUploadType('file')}
-                          className="flex-1"
-                        >
-                          <FileUp className="w-4 h-4 mr-2" />
-                          Arquivo Local
-                        </Button>
-                        <Button
-                          variant={uploadType === 'url' ? 'default' : 'outline'}
-                          onClick={() => setUploadType('url')}
-                          className="flex-1"
-                        >
-                          <Link className="w-4 h-4 mr-2" />
-                          Link/URL
-                        </Button>
-                        <Button
-                          variant={uploadType === 'api' ? 'default' : 'outline'}
-                          onClick={() => setUploadType('api')}
-                          className="flex-1"
-                        >
-                          <Plug className="w-4 h-4 mr-2" />
-                          API
-                        </Button>
-                      </div>
 
-                      {/* File upload */}
-                      {uploadType === 'file' && (
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium dark:text-gray-200">Selecionar arquivo</label>
-                          <Input
-                            type="file"
-                            accept=".xlsx,.xls,.csv"
-                            onChange={handleFileUpload}
-                            className="dark:bg-gray-700 dark:border-gray-600"
-                          />
-                          {selectedFile && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400">
-                              Arquivo selecionado: {selectedFile.name}
-                            </p>
-                          )}
-                        </div>
-                      )}
+                    {/* Voltar Button */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/')}
+                      className="h-9 px-3 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Voltar
+                    </Button>
 
-                      {/* URL input */}
-                      {uploadType === 'url' && (
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium dark:text-gray-200">URL do Google Sheets</label>
-                          <Input
-                            type="url"
-                            placeholder="https://docs.google.com/spreadsheets/d/..."
-                            value={spreadsheetUrl}
-                            onChange={(e) => setSpreadsheetUrl(e.target.value)}
-                            className="dark:bg-gray-700 dark:border-gray-600"
-                          />
-                        </div>
-                      )}
-
-                      {/* API integrations */}
-                      {uploadType === 'api' && (
+                    <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Nova Planilha
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md dark:bg-gray-800 dark:border-gray-700">
+                        <DialogHeader>
+                          <DialogTitle className="dark:text-white">Carregar Nova Planilha</DialogTitle>
+                          <DialogDescription className="dark:text-gray-300">
+                            Escolha como você gostaria de adicionar sua planilha para análise.
+                          </DialogDescription>
+                        </DialogHeader>
+                        
                         <div className="space-y-4">
-                          <div className="space-y-2">
-                            <label className="text-sm font-medium dark:text-gray-200">Selecionar Integração</label>
-                            <Select value={selectedIntegration} onValueChange={setSelectedIntegration}>
-                              <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600">
-                                <SelectValue placeholder="Escolha uma integração" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="facebook-ads-1">Meta Ads (Facebook/Instagram)</SelectItem>
-                                <SelectItem value="google-ads-1">Google Ads</SelectItem>
-                                <SelectItem value="google-analytics-1">Google Analytics</SelectItem>
-                              </SelectContent>
-                            </Select>
+                          {/* Toggle between file, URL and API */}
+                          <div className="grid grid-cols-3 gap-2">
+                            <Button
+                              variant={uploadType === 'file' ? 'default' : 'outline'}
+                              onClick={() => setUploadType('file')}
+                              className="flex-1"
+                            >
+                              <FileUp className="w-4 h-4 mr-2" />
+                              Arquivo Local
+                            </Button>
+                            <Button
+                              variant={uploadType === 'url' ? 'default' : 'outline'}
+                              onClick={() => setUploadType('url')}
+                              className="flex-1"
+                            >
+                              <Link className="w-4 h-4 mr-2" />
+                              Link/URL
+                            </Button>
+                            <Button
+                              variant={uploadType === 'api' ? 'default' : 'outline'}
+                              onClick={() => setUploadType('api')}
+                              className="flex-1"
+                            >
+                              <Plug className="w-4 h-4 mr-2" />
+                              API
+                            </Button>
                           </div>
 
-                          {selectedIntegration === 'facebook-ads-1' && (
-                            <>
+                          {/* File upload */}
+                          {uploadType === 'file' && (
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium dark:text-gray-200">Selecionar arquivo</label>
+                              <Input
+                                type="file"
+                                accept=".xlsx,.xls,.csv"
+                                onChange={handleFileUpload}
+                                className="dark:bg-gray-700 dark:border-gray-600"
+                              />
+                              {selectedFile && (
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  Arquivo selecionado: {selectedFile.name}
+                                </p>
+                              )}
+                            </div>
+                          )}
+
+                          {/* URL input */}
+                          {uploadType === 'url' && (
+                            <div className="space-y-2">
+                              <label className="text-sm font-medium dark:text-gray-200">URL do Google Sheets</label>
+                              <Input
+                                type="url"
+                                placeholder="https://docs.google.com/spreadsheets/d/..."
+                                value={spreadsheetUrl}
+                                onChange={(e) => setSpreadsheetUrl(e.target.value)}
+                                className="dark:bg-gray-700 dark:border-gray-600"
+                              />
+                            </div>
+                          )}
+
+                          {/* API integrations */}
+                          {uploadType === 'api' && (
+                            <div className="space-y-4">
                               <div className="space-y-2">
-                                <label className="text-sm font-medium dark:text-gray-200">Usuário Facebook</label>
-                                <Select value={selectedFacebookUser} onValueChange={setSelectedFacebookUser}>
+                                <label className="text-sm font-medium dark:text-gray-200">Selecionar Integração</label>
+                                <Select value={selectedIntegration} onValueChange={setSelectedIntegration}>
                                   <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600">
-                                    <SelectValue placeholder="Selecione um usuário" />
+                                    <SelectValue placeholder="Escolha uma integração" />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    {facebookUsers.map(user => (
-                                      <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
-                                    ))}
+                                    <SelectItem value="facebook-ads-1">Meta Ads (Facebook/Instagram)</SelectItem>
+                                    <SelectItem value="google-ads-1">Google Ads</SelectItem>
+                                    <SelectItem value="google-analytics-1">Google Analytics</SelectItem>
                                   </SelectContent>
                                 </Select>
                               </div>
 
-                              {selectedFacebookUser && (
-                                <div className="space-y-2">
-                                  <label className="text-sm font-medium dark:text-gray-200">Conta de Anúncios</label>
-                                  <Select value={selectedAdAccount} onValueChange={setSelectedAdAccount}>
-                                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600">
-                                      <SelectValue placeholder="Selecione uma conta" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {adAccountsByUser[selectedFacebookUser as keyof typeof adAccountsByUser]?.map(account => (
-                                        <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                </div>
+                              {selectedIntegration === 'facebook-ads-1' && (
+                                <>
+                                  <div className="space-y-2">
+                                    <label className="text-sm font-medium dark:text-gray-200">Usuário Facebook</label>
+                                    <Select value={selectedFacebookUser} onValueChange={setSelectedFacebookUser}>
+                                      <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600">
+                                        <SelectValue placeholder="Selecione um usuário" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {facebookUsers.map(user => (
+                                          <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  {selectedFacebookUser && (
+                                    <div className="space-y-2">
+                                      <label className="text-sm font-medium dark:text-gray-200">Conta de Anúncios</label>
+                                      <Select value={selectedAdAccount} onValueChange={setSelectedAdAccount}>
+                                        <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600">
+                                          <SelectValue placeholder="Selecione uma conta" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {adAccountsByUser[selectedFacebookUser as keyof typeof adAccountsByUser]?.map(account => (
+                                            <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+                                  )}
+                                </>
                               )}
-                            </>
+                            </div>
                           )}
+
+                          <Button 
+                            onClick={handleUploadSubmit}
+                            disabled={
+                              (uploadType === 'file' && !selectedFile) || 
+                              (uploadType === 'url' && !spreadsheetUrl) ||
+                              (uploadType === 'api' && !selectedIntegration) ||
+                              (uploadType === 'api' && selectedIntegration === 'facebook-ads-1' && (!selectedFacebookUser || !selectedAdAccount))
+                            }
+                            className="w-full"
+                          >
+                            <Upload className="w-4 h-4 mr-2" />
+                            {uploadType === 'api' ? 'Importar Dados' : 'Carregar Planilha'}
+                          </Button>
                         </div>
-                      )}
-
-                      <Button 
-                        onClick={handleUploadSubmit}
-                        disabled={
-                          (uploadType === 'file' && !selectedFile) || 
-                          (uploadType === 'url' && !spreadsheetUrl) ||
-                          (uploadType === 'api' && !selectedIntegration) ||
-                          (uploadType === 'api' && selectedIntegration === 'facebook-ads-1' && (!selectedFacebookUser || !selectedAdAccount))
-                        }
-                        className="w-full"
-                      >
-                        <Upload className="w-4 h-4 mr-2" />
-                        {uploadType === 'api' ? 'Importar Dados' : 'Carregar Planilha'}
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </div>
-          </header>
-
-          <div className="flex h-[calc(100vh-80px)]">
-            {/* Main Dashboard */}
-            <div className="flex-1 p-6 overflow-y-auto">
-              <div className="max-w-7xl mx-auto">
-                <div className="mb-6">
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Dashboard Analytics</h1>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Arraste e redimensione os widgets para personalizar seu dashboard
-                  </p>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
+              </header>
 
-                {/* Dynamic Dashboard Grid */}
-                <DashboardGrid
-                  items={dashboardItems}
-                  onLayoutChange={updateLayouts}
-                  onItemRemove={removeItem}
-                  isDarkMode={isDarkMode}
-                  isEditable={true}
-                />
+              {/* Main Dashboard */}
+              <div className="flex-1 p-6 overflow-y-auto">
+                <div className="max-w-7xl mx-auto">
+                  <div className="mb-6">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Dashboard Analytics</h1>
+                    <p className="text-gray-600 dark:text-gray-400">
+                      Arraste e redimensione os widgets para personalizar seu dashboard
+                    </p>
+                  </div>
+
+                  {/* Dynamic Dashboard Grid */}
+                  <DashboardGrid
+                    items={dashboardItems}
+                    onLayoutChange={updateLayouts}
+                    onItemRemove={removeItem}
+                    isDarkMode={isDarkMode}
+                    isEditable={true}
+                  />
+                </div>
               </div>
             </div>
+          </ResizablePanel>
 
-            {/* Chat Panel */}
-            <div className="w-96 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col">
+          <ResizableHandle withHandle />
+          
+          {/* Chat Panel */}
+          <ResizablePanel defaultSize={24} minSize={20} maxSize={40}>
+            <div className="h-full bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col">
               <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <h3 className="font-semibold text-gray-900 dark:text-white">🤖 Assistente IA</h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Converse com a IA para criar visualizações</p>
@@ -623,8 +635,8 @@ const Product = () => {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
     </SidebarProvider>
   );
