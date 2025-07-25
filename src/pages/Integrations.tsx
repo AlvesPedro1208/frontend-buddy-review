@@ -577,15 +577,6 @@ const Integrations = () => {
 
         {/* User Filter */}
         <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Integrações Ativas
-            </h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Visualize e gerencie suas conexões ativas
-            </p>
-          </div>
-          
           <div className="flex items-center space-x-3">
             <label htmlFor="user-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Filtrar por usuário:
@@ -603,6 +594,15 @@ const Integrations = () => {
                 </option>
               ))}
             </select>
+          </div>
+          
+          <div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Integrações Ativas
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Visualize e gerencie suas conexões ativas
+            </p>
           </div>
         </div>
 
