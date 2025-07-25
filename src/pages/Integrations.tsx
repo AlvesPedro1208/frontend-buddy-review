@@ -616,7 +616,7 @@ const Integrations = () => {
         </div>
 
         {/* Account Filters */}
-        {selectedFacebookId && hasSearched && accounts.length > 0 && (
+        {selectedFacebookId && (
           <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
             <div className="flex items-center space-x-4">
               <div className="flex-1">
@@ -657,15 +657,15 @@ const Integrations = () => {
               </div>
             </div>
             
-            <div className="mt-4 flex items-center justify-between">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">{filteredAccounts.length}</span> conta{filteredAccounts.length !== 1 ? 's' : ''} encontrada{filteredAccounts.length !== 1 ? 's' : ''}
+            {hasSearched && (
+              <div className="mt-4 flex items-center justify-between">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="font-medium">{filteredAccounts.length}</span> conta{filteredAccounts.length !== 1 ? 's' : ''} encontrada{filteredAccounts.length !== 1 ? 's' : ''}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
-
-        {/* Search Results Info - Removed as it's now in the filter bar */}
 
         {/* Integrações Ativas */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 min-h-[200px]">
