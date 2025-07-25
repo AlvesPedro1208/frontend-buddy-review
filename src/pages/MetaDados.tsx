@@ -410,7 +410,15 @@ const MetaDados = () => {
                           <h4 className="font-medium text-sm">Selecione os campos para extrair</h4>
                         </div>
                         <div className="max-h-60 overflow-y-auto p-2">
-                          {opcoesCampos.map((campo) => (
+                          {opcoesCampos
+                            .sort((a, b) => {
+                              const aObrigatorio = camposObrigatorios.includes(a.value);
+                              const bObrigatorio = camposObrigatorios.includes(b.value);
+                              if (aObrigatorio && !bObrigatorio) return -1;
+                              if (!aObrigatorio && bObrigatorio) return 1;
+                              return a.label.localeCompare(b.label);
+                            })
+                            .map((campo) => (
                             <label
                               key={campo.value}
                               className="flex items-center space-x-2 p-2 hover:bg-accent rounded cursor-pointer"
