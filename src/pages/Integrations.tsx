@@ -603,41 +603,37 @@ const Integrations = () => {
                 </option>
               ))}
             </select>
-          </div>
-        </div>
-
-        {/* Search Controls */}
-        {selectedFacebookId && (
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            
             <Button 
               onClick={handleSearchAccounts}
-              disabled={loading}
+              disabled={loading || !selectedFacebookId}
               className="flex items-center space-x-2"
             >
               <Search className="h-4 w-4" />
               <span>{loading ? 'Buscando...' : 'Buscar Contas'}</span>
             </Button>
+          </div>
+        </div>
+
+        {/* Search Results Info */}
+        {selectedFacebookId && hasSearched && accounts.length > 0 && (
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-4">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="font-medium">{accounts.length}</span> conta{accounts.length !== 1 ? 's' : ''} encontrada{accounts.length !== 1 ? 's' : ''}
+            </div>
             
-            {hasSearched && accounts.length > 0 && (
-              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  <span className="font-medium">{accounts.length}</span> conta{accounts.length !== 1 ? 's' : ''} encontrada{accounts.length !== 1 ? 's' : ''}
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Search className="h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Buscar por nome da conta..."
-                    value={searchTerm}
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value);
-                      setCurrentPage(1); // Reset to first page when searching
-                    }}
-                    className="w-64"
-                  />
-                </div>
-              </div>
-            )}
+            <div className="flex items-center space-x-2">
+              <Search className="h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Buscar por nome da conta..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1); // Reset to first page when searching
+                }}
+                className="w-64"
+              />
+            </div>
           </div>
         )}
 
