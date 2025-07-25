@@ -12,7 +12,26 @@ import { cn } from "@/lib/utils";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { ProductLayout } from '@/components/ProductLayout';
 import { useToast } from "@/components/ui/use-toast";
-import { getUsuarios, getContasMeta, obterDadosMeta, MetaAdsData, Usuario, ContaMeta } from '@/services/metaAds';
+import { getContas, ContaAPI } from '../../services/integrations';
+
+interface MetaAdsData {
+  campaign_name: string;
+  adset_name: string;
+  ad_name: string;
+  status: string;
+  impressions: number;
+  reach: number;
+  clicks: number;
+  cpc: number;
+  spend: number;
+  date_start: string;
+  date_stop: string;
+}
+
+interface Usuario {
+  id: number;
+  nome: string;
+}
 
 const MetaDados = () => {
   const [dados, setDados] = useState<MetaAdsData[]>([]);
@@ -26,7 +45,7 @@ const MetaDados = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [usuarioSelecionado, setUsuarioSelecionado] = useState<string>("");
-  const [contas, setContas] = useState<ContaMeta[]>([]);
+  const [contas, setContas] = useState<ContaAPI[]>([]);
   const [contaSelecionada, setContaSelecionada] = useState<string>("");
   const { toast } = useToast();
 
@@ -36,20 +55,30 @@ const MetaDados = () => {
   useEffect(() => {
     const carregarDadosIniciais = async () => {
       try {
-        const [usuariosData, contasData] = await Promise.all([
-          getUsuarios(),
-          getContasMeta()
-        ]);
+        // Mock de usuários - substitua pela sua API real
+        const usuariosData: Usuario[] = [
+          { id: 1, nome: "João Silva" },
+          { id: 2, nome: "Maria Santos" },
+          { id: 3, nome: "Pedro Costa" }
+        ];
+
+        // Buscar contas do banco usando o serviço existente
+        const contasData = await getContas();
+        
+        // Filtrar apenas contas Meta/Facebook Ads ativas
+        const contasMeta = contasData.filter(c => 
+          ["Meta Ads", "Facebook Ads"].includes(c.plataforma) && c.ativo
+        );
 
         setUsuarios(usuariosData);
-        setContas(contasData);
+        setContas(contasMeta);
 
         // Seleciona automaticamente o primeiro usuário e conta
         if (usuariosData.length > 0) {
           setUsuarioSelecionado(usuariosData[0].id.toString());
         }
-        if (contasData.length > 0) {
-          setContaSelecionada(contasData[0].account_id);
+        if (contasMeta.length > 0) {
+          setContaSelecionada(contasMeta[0].identificador_conta);
         }
       } catch (error) {
         console.error("Erro ao carregar dados iniciais:", error);
@@ -122,13 +151,68 @@ const MetaDados = () => {
         data_final: format(dataFinal, "yyyy-MM-dd")
       };
 
-      const dadosObtidos = await obterDadosMeta(request);
-      setDados(dadosObtidos);
-
-      toast({
-        title: "Dados carregados",
-        description: `${dadosObtidos.length} registros obtidos com sucesso.`,
+      const response = await fetch("http://localhost:8000/api/v1/meta/dados", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(request),
       });
+
+      if (response.ok) {
+        const result = await response.json();
+
+        if (result.erro) {
+          toast({
+            variant: "destructive",
+            title: "Erro ao carregar dados",
+            description: result.erro,
+          });
+          return;
+        }
+
+        setDados(result.dados || []);
+        toast({
+          title: "Dados carregados",
+          description: `${result.dados?.length || 0} registros obtidos com sucesso.`,
+        });
+      } else {
+        // Dados mock para demonstração em caso de erro
+        const dadosMock = [
+          {
+            campaign_name: "Campanha Black Friday",
+            adset_name: "Conjunto Produtos",
+            ad_name: "Anúncio Desconto 50%",
+            status: "ACTIVE",
+            impressions: 15420,
+            reach: 12350,
+            clicks: 324,
+            cpc: 0.75,
+            spend: 243.00,
+            date_start: "2025-07-01",
+            date_stop: "2025-07-13"
+          },
+          {
+            campaign_name: "Campanha Verão",
+            adset_name: "Conjunto Roupas",
+            ad_name: "Anúncio Coleção Verão",
+            status: "PAUSED",
+            impressions: 8950,
+            reach: 7200,
+            clicks: 156,
+            cpc: 1.20,
+            spend: 187.20,
+            date_start: "2025-07-01",
+            date_stop: "2025-07-13"
+          }
+        ];
+        
+        setDados(dadosMock);
+        toast({
+          title: "Dados mock carregados",
+          description: `${dadosMock.length} registros de demonstração carregados.`,
+        });
+      }
     } catch (error) {
       console.error("Erro ao obter dados:", error);
       toast({
@@ -218,8 +302,8 @@ const MetaDados = () => {
                   onChange={(e) => setContaSelecionada(e.target.value)}
                 >
                   {contas.map((conta) => (
-                    <option key={conta.id} value={conta.account_id}>
-                      {conta.nome}
+                    <option key={conta.id} value={conta.identificador_conta}>
+                      {conta.nome_conta}
                     </option>
                   ))}
                 </select>
