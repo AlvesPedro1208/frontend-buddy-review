@@ -153,7 +153,7 @@ const Product = () => {
     }
   ];
 
-  const { items: dashboardItems, addItem, removeItem, updateLayouts } = useDashboardLayout(initialDashboardItems);
+  const { items: dashboardItems, layouts, addItem, removeItem, updateLayouts } = useDashboardLayout(initialDashboardItems);
 
   const isChartRequest = (pergunta: string): boolean => {
     const chartKeywords = [
@@ -562,6 +562,7 @@ const Product = () => {
                   {/* Dynamic Dashboard Grid */}
                   <DashboardGrid
                     items={dashboardItems}
+                    layouts={layouts}
                     onLayoutChange={updateLayouts}
                     onItemRemove={removeItem}
                     isDarkMode={isDarkMode}

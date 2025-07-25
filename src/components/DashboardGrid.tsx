@@ -9,7 +9,8 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 
 interface DashboardGridProps {
   items: DashboardItem[];
-  onLayoutChange: (layouts: Layout[]) => void;
+  layouts?: any;
+  onLayoutChange: (layouts: any) => void;
   onItemRemove?: (id: string) => void;
   isDarkMode?: boolean;
   isEditable?: boolean;
@@ -17,12 +18,13 @@ interface DashboardGridProps {
 
 export const DashboardGrid: React.FC<DashboardGridProps> = ({
   items,
+  layouts: savedLayouts,
   onLayoutChange,
   onItemRemove,
   isDarkMode = false,
   isEditable = true
 }) => {
-  // Convert dashboard items to grid layouts
+  // Convert dashboard items to grid layouts and merge with saved layouts
   const layouts = useMemo(() => {
     const gridLayouts = items.map(item => ({
       i: item.id,
@@ -36,14 +38,15 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
       maxH: 8
     }));
     
+    // Use saved layouts if available, otherwise use generated layouts
     return {
-      lg: gridLayouts,
-      md: gridLayouts,
-      sm: gridLayouts.map(layout => ({ ...layout, w: Math.min(layout.w, 6) })),
-      xs: gridLayouts.map(layout => ({ ...layout, w: 4, x: 0 })),
-      xxs: gridLayouts.map(layout => ({ ...layout, w: 2, x: 0 }))
+      lg: savedLayouts?.lg?.length > 0 ? savedLayouts.lg : gridLayouts,
+      md: savedLayouts?.md?.length > 0 ? savedLayouts.md : gridLayouts.map(layout => ({ ...layout, w: Math.min(layout.w, 8) })),
+      sm: savedLayouts?.sm?.length > 0 ? savedLayouts.sm : gridLayouts.map(layout => ({ ...layout, w: Math.min(layout.w, 6) })),
+      xs: savedLayouts?.xs?.length > 0 ? savedLayouts.xs : gridLayouts.map(layout => ({ ...layout, w: 4, x: 0 })),
+      xxs: savedLayouts?.xxs?.length > 0 ? savedLayouts.xxs : gridLayouts.map(layout => ({ ...layout, w: 2, x: 0 }))
     };
-  }, [items]);
+  }, [items, savedLayouts]);
 
   const breakpoints = {
     lg: 1200,
@@ -61,9 +64,9 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
     xxs: 2
   };
 
-  const handleLayoutChange = (layout: Layout[], layouts: { [key: string]: Layout[] }) => {
-    // Update the current breakpoint layout
-    onLayoutChange(layout);
+  const handleLayoutChange = (layout: Layout[], allLayouts: { [key: string]: Layout[] }) => {
+    // Save all breakpoint layouts
+    onLayoutChange(allLayouts);
   };
 
   return (

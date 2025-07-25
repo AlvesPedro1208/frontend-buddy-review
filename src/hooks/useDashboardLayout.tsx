@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export interface DashboardItem {
   id: string;
@@ -15,8 +15,41 @@ export interface DashboardItem {
   };
 }
 
+interface LayoutsByBreakpoint {
+  lg: any[];
+  md: any[];
+  sm: any[];
+  xs: any[];
+  xxs: any[];
+}
+
 export const useDashboardLayout = (initialItems: DashboardItem[] = []) => {
   const [items, setItems] = useState<DashboardItem[]>(initialItems);
+  const [layouts, setLayouts] = useState<LayoutsByBreakpoint>({
+    lg: [],
+    md: [],
+    sm: [],
+    xs: [],
+    xxs: []
+  });
+
+  // Load layouts from localStorage on mount
+  useEffect(() => {
+    const savedLayouts = localStorage.getItem('dashboard-layouts');
+    if (savedLayouts) {
+      try {
+        setLayouts(JSON.parse(savedLayouts));
+      } catch (error) {
+        console.warn('Failed to parse saved layouts:', error);
+      }
+    }
+  }, []);
+
+  // Save layouts to localStorage when they change
+  const saveLayoutsToStorage = useCallback((newLayouts: LayoutsByBreakpoint) => {
+    localStorage.setItem('dashboard-layouts', JSON.stringify(newLayouts));
+    setLayouts(newLayouts);
+  }, []);
 
   const addItem = useCallback((newItem: Omit<DashboardItem, 'layout'>) => {
     const newLayout = findOptimalPosition(items);
@@ -29,7 +62,15 @@ export const useDashboardLayout = (initialItems: DashboardItem[] = []) => {
 
   const removeItem = useCallback((id: string) => {
     setItems(prev => prev.filter(item => item.id !== id));
-  }, []);
+    
+    // Also remove from saved layouts
+    const updatedLayouts = { ...layouts };
+    Object.keys(updatedLayouts).forEach(breakpoint => {
+      updatedLayouts[breakpoint as keyof LayoutsByBreakpoint] = 
+        updatedLayouts[breakpoint as keyof LayoutsByBreakpoint].filter((layout: any) => layout.i !== id);
+    });
+    saveLayoutsToStorage(updatedLayouts);
+  }, [layouts, saveLayoutsToStorage]);
 
   const updateItemLayout = useCallback((id: string, layout: { x: number; y: number; w: number; h: number }) => {
     setItems(prev => prev.map(item => 
@@ -37,15 +78,20 @@ export const useDashboardLayout = (initialItems: DashboardItem[] = []) => {
     ));
   }, []);
 
-  const updateLayouts = useCallback((layouts: any[]) => {
+  const updateLayouts = useCallback((newLayouts: LayoutsByBreakpoint) => {
+    saveLayoutsToStorage(newLayouts);
+    
+    // Update items with the current layout info
     setItems(prev => prev.map(item => {
-      const newLayout = layouts.find(l => l.i === item.id);
+      // Use lg layout as default
+      const newLayout = newLayouts.lg.find((l: any) => l.i === item.id);
       return newLayout ? { ...item, layout: newLayout } : item;
     }));
-  }, []);
+  }, [saveLayoutsToStorage]);
 
   return {
     items,
+    layouts,
     addItem,
     removeItem,
     updateItemLayout,
