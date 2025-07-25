@@ -602,7 +602,6 @@ const Integrations = () => {
             
             <Button 
               onClick={handleSearchAccounts}
-              disabled={loading || !selectedFacebookId}
               className="flex items-center space-x-2"
             >
               <Search className="h-4 w-4" />
