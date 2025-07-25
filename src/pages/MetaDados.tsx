@@ -393,41 +393,73 @@ const MetaDados = () => {
                   </label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
-                        Campos a puxar ({camposSelecionados.length})
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <Filter className="mr-2 h-4 w-4" />
+                        {camposSelecionados.length > 0 
+                          ? `${camposSelecionados.length} campo${camposSelecionados.length > 1 ? 's' : ''} selecionado${camposSelecionados.length > 1 ? 's' : ''}`
+                          : "Selecionar campos"
+                        }
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-72 p-4">
-                      <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
-                        {opcoesCampos.map(opt => (
-                          <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
-                            <Checkbox
-                              checked={camposSelecionados.includes(opt.value)}
-                              disabled={camposObrigatorios.includes(opt.value)}
-                              onCheckedChange={checked => {
-                                if (camposObrigatorios.includes(opt.value)) {
-                                  if (!checked) {
-                                    toast({
-                                      variant: "destructive",
-                                      title: "Campo obrigatório",
-                                      description: `O campo '${opt.label}' é obrigatório e não pode ser desmarcado.`,
-                                    });
+                    <PopoverContent className="w-80 p-0 z-50" align="start">
+                      <div className="bg-background border border-border rounded-lg shadow-lg">
+                        <div className="p-3 border-b">
+                          <h4 className="font-medium text-sm">Selecione os campos para extrair</h4>
+                        </div>
+                        <div className="max-h-60 overflow-y-auto p-2">
+                          {opcoesCampos.map((campo) => (
+                            <label
+                              key={campo.value}
+                              className="flex items-center space-x-2 p-2 hover:bg-accent rounded cursor-pointer"
+                            >
+                              <Checkbox
+                                checked={camposSelecionados.includes(campo.value)}
+                                disabled={camposObrigatorios.includes(campo.value)}
+                                onCheckedChange={checked => {
+                                  if (camposObrigatorios.includes(campo.value)) {
+                                    if (!checked) {
+                                      toast({
+                                        variant: "destructive",
+                                        title: "Campo obrigatório",
+                                        description: `O campo '${campo.label}' é obrigatório e não pode ser desmarcado.`,
+                                      });
+                                    }
+                                    return;
                                   }
-                                  return;
-                                }
-                                if (checked) {
-                                  setCamposSelecionados(prev => [...prev, opt.value]);
-                                } else {
-                                  setCamposSelecionados(prev => prev.filter(v => v !== opt.value));
-                                }
-                              }}
-                              id={`campo-${opt.value}`}
-                            />
-                            <span className="text-sm">{opt.label}{camposObrigatorios.includes(opt.value) && <span className="text-red-500 ml-1">*</span>}</span>
-                          </label>
-                        ))}
+                                  if (checked) {
+                                    setCamposSelecionados([...camposSelecionados, campo.value]);
+                                  } else {
+                                    setCamposSelecionados(camposSelecionados.filter(c => c !== campo.value));
+                                  }
+                                }}
+                                id={`campo-${campo.value}`}
+                              />
+                              <span className="text-sm">{campo.label}{camposObrigatorios.includes(campo.value) && <span className="text-red-500 ml-1">*</span>}</span>
+                            </label>
+                          ))}
+                        </div>
+                        <div className="p-3 border-t flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setCamposSelecionados(opcoesCampos.map(c => c.value))}
+                            className="flex-1"
+                          >
+                            Selecionar Todos
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setCamposSelecionados([])}
+                            className="flex-1"
+                          >
+                            Limpar Todos
+                          </Button>
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500 mt-2">Campos marcados com * são obrigatórios.</div>
                     </PopoverContent>
                   </Popover>
                 </div>
