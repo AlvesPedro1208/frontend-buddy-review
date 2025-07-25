@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -48,9 +49,10 @@ const MetaDados = () => {
   const [usuarioSelecionado, setUsuarioSelecionado] = useState<string>("");
   const [contas, setContas] = useState<ContaAPI[]>([]);
   const [contaSelecionada, setContaSelecionada] = useState<string>("");
-  const [camposSelecionados, setCamposSelecionados] = useState<string[]>([
+  const camposObrigatorios = [
     "campaign_name", "adset_name", "ad_name", "impressions", "reach", "clicks", "cpc", "spend", "ad_id"
-  ]);
+  ];
+  const [camposSelecionados, setCamposSelecionados] = useState<string[]>(camposObrigatorios);
 
   const opcoesCampos = [
     { value: "campaign_name", label: "Nome da Campanha" },
@@ -143,15 +145,6 @@ const MetaDados = () => {
   }, [dados, searchTerm, sortField, sortDirection]);
 
   const obterDados = async () => {
-    if (!dataInicial || !dataFinal) {
-      toast({
-        variant: "destructive",
-        title: "Datas obrigatórias",
-        description: "Por favor, selecione as datas inicial e final.",
-      });
-      return;
-    }
-
     if (!usuarioSelecionado || !contaSelecionada) {
       toast({
         variant: "destructive",
@@ -163,12 +156,15 @@ const MetaDados = () => {
 
     setLoading(true);
     try {
-      const request = {
-        usuario_id: usuarioSelecionado,
+      const request: any = {
+        facebook_id: usuarioSelecionado,
         account_id: contaSelecionada,
-        data_inicial: format(dataInicial, "yyyy-MM-dd"),
-        data_final: format(dataFinal, "yyyy-MM-dd")
+        fields: camposSelecionados.length > 0 ? camposSelecionados.join(",") : undefined
       };
+      if (dataInicial && dataFinal) {
+        request.data_inicial = format(dataInicial, "yyyy-MM-dd");
+        request.data_final = format(dataFinal, "yyyy-MM-dd");
+      }
 
       const response = await fetch("http://localhost:8000/api/v1/meta/dados", {
         method: "POST",
@@ -397,63 +393,41 @@ const MetaDados = () => {
                   </label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal"
-                      >
-                        <Filter className="mr-2 h-4 w-4" />
-                        {camposSelecionados.length > 0 
-                          ? `${camposSelecionados.length} campo${camposSelecionados.length > 1 ? 's' : ''} selecionado${camposSelecionados.length > 1 ? 's' : ''}`
-                          : "Selecionar campos"
-                        }
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        Campos a puxar ({camposSelecionados.length})
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-80 p-0 z-50" align="start">
-                      <div className="bg-background border border-border rounded-lg shadow-lg">
-                        <div className="p-3 border-b">
-                          <h4 className="font-medium text-sm">Selecione os campos para extrair</h4>
-                        </div>
-                        <div className="max-h-60 overflow-y-auto p-2">
-                          {opcoesCampos.map((campo) => (
-                            <label
-                              key={campo.value}
-                              className="flex items-center space-x-2 p-2 hover:bg-accent rounded cursor-pointer"
-                            >
-                              <input
-                                type="checkbox"
-                                checked={camposSelecionados.includes(campo.value)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setCamposSelecionados([...camposSelecionados, campo.value]);
-                                  } else {
-                                    setCamposSelecionados(camposSelecionados.filter(c => c !== campo.value));
+                    <PopoverContent className="w-72 p-4">
+                      <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
+                        {opcoesCampos.map(opt => (
+                          <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+                            <Checkbox
+                              checked={camposSelecionados.includes(opt.value)}
+                              disabled={camposObrigatorios.includes(opt.value)}
+                              onCheckedChange={checked => {
+                                if (camposObrigatorios.includes(opt.value)) {
+                                  if (!checked) {
+                                    toast({
+                                      variant: "destructive",
+                                      title: "Campo obrigatório",
+                                      description: `O campo '${opt.label}' é obrigatório e não pode ser desmarcado.`,
+                                    });
                                   }
-                                }}
-                                className="rounded border-border"
-                              />
-                              <span className="text-sm">{campo.label}</span>
-                            </label>
-                          ))}
-                        </div>
-                        <div className="p-3 border-t flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setCamposSelecionados(opcoesCampos.map(c => c.value))}
-                            className="flex-1"
-                          >
-                            Selecionar Todos
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setCamposSelecionados([])}
-                            className="flex-1"
-                          >
-                            Limpar Todos
-                          </Button>
-                        </div>
+                                  return;
+                                }
+                                if (checked) {
+                                  setCamposSelecionados(prev => [...prev, opt.value]);
+                                } else {
+                                  setCamposSelecionados(prev => prev.filter(v => v !== opt.value));
+                                }
+                              }}
+                              id={`campo-${opt.value}`}
+                            />
+                            <span className="text-sm">{opt.label}{camposObrigatorios.includes(opt.value) && <span className="text-red-500 ml-1">*</span>}</span>
+                          </label>
+                        ))}
                       </div>
+                      <div className="text-xs text-gray-500 mt-2">Campos marcados com * são obrigatórios.</div>
                     </PopoverContent>
                   </Popover>
                 </div>
@@ -477,9 +451,9 @@ const MetaDados = () => {
 
               {/* Segunda linha: Busca */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
+                <div>
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                    Buscar nos resultados
+                    Buscar
                   </label>
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
