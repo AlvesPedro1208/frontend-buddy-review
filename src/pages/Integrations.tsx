@@ -30,6 +30,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { FacebookOAuthService, getAllFacebookUsers, getUserAdAccountsFromBackend, FacebookUser, FacebookAccount } from '@/services/oauth';
+import { getContas } from '@/services/integrations';
 import { useToast } from '@/hooks/use-toast';
 import { ProductLayout } from '@/components/ProductLayout';
 
@@ -145,8 +146,7 @@ const Integrations = () => {
 
   const fetchIntegrations = async () => {
     try {
-      const response = await fetch('http://localhost:8000/contas');
-      const data = await response.json();
+      const data = await getContas();
 
       const parsed: Integration[] = data.map((item: any) => ({
         id: String(item.id),

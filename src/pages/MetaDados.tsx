@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { ProductLayout } from '@/components/ProductLayout';
 import { useToast } from "@/components/ui/use-toast";
-import { getContas, ContaAPI } from '../../services/integrations';
+import { getContas, ContaAPI } from '@/services/integrations';
 
 interface MetaAdsData {
   campaign_name: string;
