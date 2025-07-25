@@ -160,13 +160,11 @@ const Integrations = () => {
 
   // Reset state when user changes
   useEffect(() => {
-    if (selectedFacebookId) {
-      setAccounts([]);
-      setHasSearched(false);
-      setSearchTerm('');
-      setCurrentPage(1);
-    }
-  }, [selectedFacebookId]);
+    setAccounts([]);
+    setHasSearched(false);
+    setSearchTerm('');
+    setCurrentPage(1);
+  }, [selectedUser]);
 
   // Limpar estado de importação quando o componente for desmontado
   useEffect(() => {
