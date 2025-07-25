@@ -44,8 +44,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const parsedUser = JSON.parse(userData);
         setUser(parsedUser);
-        // Verificar se o token ainda é válido
-        validateToken(token);
+        // TODO: Backend - Verificar se o token ainda é válido
+        // validateToken(token);
       } catch (error) {
         console.error('Erro ao verificar autenticação:', error);
         localStorage.removeItem('authToken');
@@ -55,40 +55,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const validateToken = async (token: string) => {
-    try {
-      const response = await fetch('/api/auth/validate', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Token inválido');
-      }
-    } catch (error) {
-      console.error('Token inválido:', error);
-      logout();
-    }
-  };
+  // TODO: Backend - Validar token no servidor
+  // const validateToken = async (token: string) => {
+  //   try {
+  //     const response = await fetch('/api/auth/validate', {
+  //       headers: {
+  //         'Authorization': `Bearer ${token}`
+  //       }
+  //     });
+  //     
+  //     if (!response.ok) {
+  //       throw new Error('Token inválido');
+  //     }
+  //   } catch (error) {
+  //     console.error('Token inválido:', error);
+  //     logout();
+  //   }
+  // };
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      // TODO: Backend - Implementar chamada real para API
+      // const response = await fetch('/api/auth/login', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({ email, password }),
+      // });
+      // const data = await response.json();
+      // if (!response.ok) {
+      //   throw new Error(data.message || 'Erro ao fazer login');
+      // }
+      // const { token, user: userData } = data;
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Erro ao fazer login');
-      }
-
-      const { token, user: userData } = data;
+      // SIMULAÇÃO FRONTEND - Remover quando implementar backend
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simula delay da API
+      
+      // Dados mockados para teste
+      const userData = {
+        id: '1',
+        email: email,
+        name: email.split('@')[0] // Nome baseado no email
+      };
+      const token = 'mock-token-' + Date.now();
       
       localStorage.setItem('authToken', token);
       localStorage.setItem('userData', JSON.stringify(userData));
@@ -103,21 +113,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const register = async (email: string, password: string, name: string) => {
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, name }),
-      });
+      // TODO: Backend - Implementar chamada real para API
+      // const response = await fetch('/api/auth/register', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify({ email, password, name }),
+      // });
+      // const data = await response.json();
+      // if (!response.ok) {
+      //   throw new Error(data.message || 'Erro ao criar conta');
+      // }
+      // const { token, user: userData } = data;
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Erro ao criar conta');
-      }
-
-      const { token, user: userData } = data;
+      // SIMULAÇÃO FRONTEND - Remover quando implementar backend
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simula delay da API
+      
+      // Dados mockados para teste
+      const userData = {
+        id: '1',
+        email: email,
+        name: name
+      };
+      const token = 'mock-token-' + Date.now();
       
       localStorage.setItem('authToken', token);
       localStorage.setItem('userData', JSON.stringify(userData));
