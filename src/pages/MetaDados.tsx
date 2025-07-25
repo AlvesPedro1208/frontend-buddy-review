@@ -13,7 +13,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { ProductLayout } from '@/components/ProductLayout';
 import { useToast } from "@/components/ui/use-toast";
 import { getContas, ContaAPI } from '@/services/integrations';
-import { getAllFacebookUsers } from '@/services/oauth';
+import { getAllFacebookUsers, FacebookUser } from '@/services/oauth';
 
 interface MetaAdsData {
   campaign_name: string;
@@ -44,10 +44,32 @@ const MetaDados = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<keyof MetaAdsData>("campaign_name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [usuarios, setUsuarios] = useState<FacebookUser[]>([]);
   const [usuarioSelecionado, setUsuarioSelecionado] = useState<string>("");
   const [contas, setContas] = useState<ContaAPI[]>([]);
   const [contaSelecionada, setContaSelecionada] = useState<string>("");
+  const [camposSelecionados, setCamposSelecionados] = useState<string[]>([
+    "campaign_name", "adset_name", "ad_name", "impressions", "reach", "clicks", "cpc", "spend", "ad_id"
+  ]);
+
+  const opcoesCampos = [
+    { value: "campaign_name", label: "Nome da Campanha" },
+    { value: "adset_name", label: "Conjunto" },
+    { value: "ad_name", label: "Anúncio" },
+    { value: "impressions", label: "Impressões" },
+    { value: "reach", label: "Alcance" },
+    { value: "clicks", label: "Cliques" },
+    { value: "cpc", label: "CPC" },
+    { value: "spend", label: "Gasto" },
+    { value: "ctr", label: "CTR" },
+    { value: "cpm", label: "CPM" },
+    { value: "frequency", label: "Frequência" },
+    { value: "actions", label: "Ações" },
+    { value: "objective", label: "Objetivo" },
+    { value: "configured_status", label: "Status Configurado" },
+    { value: "effective_status", label: "Status Efetivo" },
+    { value: "ad_id", label: "ID do Anúncio" }
+  ];
   const { toast } = useToast();
 
   const itemsPerPage = 10;
@@ -67,18 +89,12 @@ const MetaDados = () => {
           ["Meta Ads", "Facebook Ads"].includes(c.plataforma) && c.ativo
         );
 
-        // Mapear usuários do Facebook para o formato esperado
-        const usuariosMapeados: Usuario[] = usuariosData.map(user => ({
-          id: parseInt(user.facebook_id),
-          nome: user.username
-        }));
-
-        setUsuarios(usuariosMapeados);
+        setUsuarios(usuariosData);
         setContas(contasMeta);
 
         // Seleciona automaticamente o primeiro usuário e conta
-        if (usuariosMapeados.length > 0) {
-          setUsuarioSelecionado(usuariosMapeados[0].id.toString());
+        if (usuariosData.length > 0) {
+          setUsuarioSelecionado(usuariosData[0].facebook_id || "");
         }
         if (contasMeta.length > 0) {
           setContaSelecionada(contasMeta[0].identificador_conta);
@@ -275,133 +291,206 @@ const MetaDados = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-              {/* Seleção de Usuário */}
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Usuário Logado
-                </label>
-                <select
-                  className="w-full px-3 py-2 border rounded-md text-sm"
-                  value={usuarioSelecionado}
-                  onChange={(e) => setUsuarioSelecionado(e.target.value)}
-                >
-                  {usuarios.map((usuario) => (
-                    <option key={usuario.id} value={usuario.id.toString()}>
-                      {usuario.nome}
-                    </option>
-                  ))}
-                </select>
-              </div>
+            <div className="space-y-4">
+              {/* Primeira linha: Usuário, Conta, Datas, Campos e Botão */}
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                {/* Seleção de Usuário */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                    Usuário Logado
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md text-sm bg-background"
+                    value={usuarioSelecionado}
+                    onChange={(e) => setUsuarioSelecionado(e.target.value)}
+                  >
+                    {usuarios.map((usuario) => (
+                      <option key={usuario.facebook_id} value={usuario.facebook_id}>
+                        {usuario.username}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              {/* Dropdown de Contas Meta Ads */}
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Conta Meta Ads
-                </label>
-                <select
-                  className="w-full px-3 py-2 border rounded-md text-sm"
-                  value={contaSelecionada}
-                  onChange={(e) => setContaSelecionada(e.target.value)}
-                >
-                  {contas.map((conta) => (
-                    <option key={conta.id} value={conta.identificador_conta}>
-                      {conta.nome_conta}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                {/* Dropdown de Contas Meta Ads */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                    Conta Meta Ads
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md text-sm bg-background"
+                    value={contaSelecionada}
+                    onChange={(e) => setContaSelecionada(e.target.value)}
+                  >
+                    {contas.map((conta) => (
+                      <option key={conta.id} value={conta.identificador_conta}>
+                        {conta.nome_conta}
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-              {/* Data Inicial */}
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Data Inicial
-                </label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !dataInicial && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dataInicial ? format(dataInicial, "dd/MM/yyyy") : "Selecionar data"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dataInicial}
-                      onSelect={setDataInicial}
-                      initialFocus
-                      className="p-3 pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+                {/* Data Inicial */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                    Data Inicial
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !dataInicial && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dataInicial ? format(dataInicial, "dd/MM/yyyy") : "Selecionar data"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dataInicial}
+                        onSelect={setDataInicial}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
 
-              {/* Data Final */}
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Data Final
-                </label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !dataFinal && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dataFinal ? format(dataFinal, "dd/MM/yyyy") : "Selecionar data"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={dataFinal}
-                      onSelect={setDataFinal}
-                      initialFocus
-                      className="p-3 pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
+                {/* Data Final */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                    Data Final
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !dataFinal && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dataFinal ? format(dataFinal, "dd/MM/yyyy") : "Selecionar data"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={dataFinal}
+                        onSelect={setDataFinal}
+                        initialFocus
+                        className="p-3 pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
 
-              {/* Busca */}
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Buscar
-                </label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Nome da campanha, conjunto ou anúncio..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
+                {/* Campos a puxar */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                    Campos a puxar
+                  </label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <Filter className="mr-2 h-4 w-4" />
+                        {camposSelecionados.length > 0 
+                          ? `${camposSelecionados.length} campo${camposSelecionados.length > 1 ? 's' : ''} selecionado${camposSelecionados.length > 1 ? 's' : ''}`
+                          : "Selecionar campos"
+                        }
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-80 p-0 z-50" align="start">
+                      <div className="bg-background border border-border rounded-lg shadow-lg">
+                        <div className="p-3 border-b">
+                          <h4 className="font-medium text-sm">Selecione os campos para extrair</h4>
+                        </div>
+                        <div className="max-h-60 overflow-y-auto p-2">
+                          {opcoesCampos.map((campo) => (
+                            <label
+                              key={campo.value}
+                              className="flex items-center space-x-2 p-2 hover:bg-accent rounded cursor-pointer"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={camposSelecionados.includes(campo.value)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setCamposSelecionados([...camposSelecionados, campo.value]);
+                                  } else {
+                                    setCamposSelecionados(camposSelecionados.filter(c => c !== campo.value));
+                                  }
+                                }}
+                                className="rounded border-border"
+                              />
+                              <span className="text-sm">{campo.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                        <div className="p-3 border-t flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setCamposSelecionados(opcoesCampos.map(c => c.value))}
+                            className="flex-1"
+                          >
+                            Selecionar Todos
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setCamposSelecionados([])}
+                            className="flex-1"
+                          >
+                            Limpar Todos
+                          </Button>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                {/* Botão Obter Dados */}
+                <div className="flex items-end">
+                  <Button 
+                    onClick={obterDados} 
+                    disabled={loading}
+                    className="w-full"
+                  >
+                    {loading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="mr-2 h-4 w-4" />
+                    )}
+                    Obter Dados
+                  </Button>
                 </div>
               </div>
 
-              {/* Botão Obter Dados */}
-              <div className="flex items-end">
-                <Button 
-                  onClick={obterDados} 
-                  disabled={loading}
-                  className="w-full"
-                >
-                  {loading ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Download className="mr-2 h-4 w-4" />
-                  )}
-                  Obter Dados
-                </Button>
+              {/* Segunda linha: Busca */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                    Buscar nos resultados
+                  </label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Nome da campanha, conjunto ou anúncio..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
