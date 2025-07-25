@@ -72,8 +72,33 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+      {/* Navbar */}
+      <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 p-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="p-2 rounded-full bg-blue-600 text-white">
+              <BarChart3 className="h-6 w-6" />
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              DashboardAI
+            </span>
+          </Link>
+          
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-muted-foreground">Já tem uma conta?</span>
+            <Link to="/login">
+              <Button variant="outline" size="sm">
+                Fazer login
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="flex items-center justify-center p-4" style={{ minHeight: 'calc(100vh - 80px)' }}>
+        <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
             <div className="p-3 rounded-full bg-blue-600 text-white">
@@ -211,6 +236,7 @@ const Register = () => {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </div>
   );
