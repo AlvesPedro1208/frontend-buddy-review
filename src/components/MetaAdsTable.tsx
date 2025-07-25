@@ -43,6 +43,10 @@ const MetaAdsTable = ({
     const tableContainer = tableRef.current;
     const scrollContainer = scrollRef.current;
 
+    console.log('MetaAdsTable - tableContainer:', tableContainer);
+    console.log('MetaAdsTable - scrollContainer:', scrollContainer);
+    console.log('MetaAdsTable - camposSelecionados length:', camposSelecionados.length);
+
     if (tableContainer && scrollContainer) {
       const syncScroll = () => {
         if (scrollContainer) {
@@ -53,7 +57,7 @@ const MetaAdsTable = ({
       tableContainer.addEventListener('scroll', syncScroll);
       return () => tableContainer.removeEventListener('scroll', syncScroll);
     }
-  }, []);
+  }, [camposSelecionados]);
 
   const getStatusBadge = (status: string) => {
     const statusColors = {
@@ -71,97 +75,89 @@ const MetaAdsTable = ({
 
   return (
     <div className="relative w-full h-[600px] border rounded-md bg-white dark:bg-gray-900 flex flex-col">
-      {/* Container principal com scroll vertical */}
+      {/* Container principal com scroll vertical apenas */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
-        <div 
-          ref={tableRef}
-          className="overflow-x-auto"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          <div style={{ overflow: 'hidden' }}>
-            <Table className="w-full" style={{ minWidth: 'max-content' }}>
-              <TableHeader className="sticky top-0 bg-background z-10">
-                <TableRow>
-                  {camposSelecionados.map(campo => {
-                    const opcao = opcoesCampos.find(o => o.value === campo);
-                    return (
-                      <TableHead 
-                        key={campo}
-                        className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 w-[150px] min-w-[150px]"
-                        onClick={() => onSort(campo as keyof MetaAdsData)}
-                      >
-                        {opcao?.label || campo} {sortField === campo && (sortDirection === "asc" ? "↑" : "↓")}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {currentData.length > 0 ? (
-                  currentData.map((item, index) => (
-                    <TableRow key={index}>
-                      {camposSelecionados.map(campo => {
-                        const valor = (item as any)[campo];
-                        let valorFormatado = '-';
-                        
-                        if (valor !== undefined && valor !== null) {
-                          if (campo === 'status') {
-                            return (
-                              <TableCell key={campo}>
-                                {getStatusBadge(valor)}
-                              </TableCell>
-                            );
-                          } else if (typeof valor === 'number') {
-                            if (campo === 'ctr' || campo === 'frequency') {
-                              valorFormatado = valor.toFixed(2) + '%';
-                            } else if (campo === 'cpm' || campo === 'cpc') {
-                              valorFormatado = 'R$ ' + valor.toFixed(2);
-                            } else if (campo === 'spend') {
-                              valorFormatado = 'R$ ' + valor.toFixed(2);
-                            } else {
-                              valorFormatado = valor.toLocaleString();
-                            }
-                          } else if (campo === 'date_start' || campo === 'date_stop') {
-                            valorFormatado = format(new Date(valor), "dd/MM/yyyy");
+        <div className="overflow-hidden">
+          <Table className="w-full" style={{ minWidth: 'max-content' }}>
+            <TableHeader className="sticky top-0 bg-background z-10">
+              <TableRow>
+                {camposSelecionados.map(campo => {
+                  const opcao = opcoesCampos.find(o => o.value === campo);
+                  return (
+                    <TableHead 
+                      key={campo}
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 w-[150px] min-w-[150px]"
+                      onClick={() => onSort(campo as keyof MetaAdsData)}
+                    >
+                      {opcao?.label || campo} {sortField === campo && (sortDirection === "asc" ? "↑" : "↓")}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {currentData.length > 0 ? (
+                currentData.map((item, index) => (
+                  <TableRow key={index}>
+                    {camposSelecionados.map(campo => {
+                      const valor = (item as any)[campo];
+                      let valorFormatado = '-';
+                      
+                      if (valor !== undefined && valor !== null) {
+                        if (campo === 'status') {
+                          return (
+                            <TableCell key={campo}>
+                              {getStatusBadge(valor)}
+                            </TableCell>
+                          );
+                        } else if (typeof valor === 'number') {
+                          if (campo === 'ctr' || campo === 'frequency') {
+                            valorFormatado = valor.toFixed(2) + '%';
+                          } else if (campo === 'cpm' || campo === 'cpc') {
+                            valorFormatado = 'R$ ' + valor.toFixed(2);
+                          } else if (campo === 'spend') {
+                            valorFormatado = 'R$ ' + valor.toFixed(2);
                           } else {
-                            valorFormatado = String(valor);
+                            valorFormatado = valor.toLocaleString();
                           }
+                        } else if (campo === 'date_start' || campo === 'date_stop') {
+                          valorFormatado = format(new Date(valor), "dd/MM/yyyy");
+                        } else {
+                          valorFormatado = String(valor);
                         }
-                        
-                        return (
-                          <TableCell key={campo} className={typeof valor === 'number' && campo !== 'status' ? "text-right" : ""}>
-                            {valorFormatado}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={camposSelecionados.length} className="text-center py-8 text-gray-500">
-                      Nenhum dado encontrado. Clique em "Obter Dados" para importar.
-                    </TableCell>
+                      }
+                      
+                      return (
+                        <TableCell key={campo} className={typeof valor === 'number' && campo !== 'status' ? "text-right" : ""}>
+                          {valorFormatado}
+                        </TableCell>
+                      );
+                    })}
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={camposSelecionados.length} className="text-center py-8 text-gray-500">
+                    Nenhum dado encontrado. Clique em "Obter Dados" para importar.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
       </div>
       
-      {/* Scroll horizontal fixo na parte inferior */}
-      <div className="h-4 border-t bg-gray-50 dark:bg-gray-800">
-        <div 
-          ref={scrollRef}
-          className="h-full overflow-x-auto overflow-y-hidden"
-          onScroll={(e) => {
-            if (tableRef.current) {
-              tableRef.current.scrollLeft = e.currentTarget.scrollLeft;
-            }
-          }}
-        >
-          <div style={{ width: `${150 * camposSelecionados.length}px`, height: '1px' }}></div>
-        </div>
+      {/* Container separado para scroll horizontal */}
+      <div 
+        className="overflow-x-auto overflow-y-hidden h-4 border-t bg-gray-50 dark:bg-gray-800"
+        onScroll={(e) => {
+          const tableContainer = document.querySelector('.table-scroll-container');
+          if (tableContainer) {
+            tableContainer.scrollLeft = e.currentTarget.scrollLeft;
+          }
+        }}
+      >
+        <div style={{ width: `${150 * camposSelecionados.length}px`, height: '1px' }}></div>
       </div>
     </div>
   );
