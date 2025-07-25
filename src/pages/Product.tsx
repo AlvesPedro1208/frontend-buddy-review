@@ -77,11 +77,36 @@ const Product = () => {
   const [spreadsheetUrl, setSpreadsheetUrl] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedIntegration, setSelectedIntegration] = useState('');
+  const [selectedFacebookUser, setSelectedFacebookUser] = useState('');
+  const [selectedAdAccount, setSelectedAdAccount] = useState('');
   const [lastUploadedSheet, setLastUploadedSheet] = useState<{ url?: string; file?: File | null }>({});
 
   const [isAiLoading, setIsAiLoading] = useState(false);
 
   const [dynamicCharts, setDynamicCharts] = useState<DynamicChart[]>([]);
+
+  // Mock data for Facebook users and ad accounts
+  const facebookUsers = [
+    { id: 'user1', name: 'João Silva (joao@empresa.com)' },
+    { id: 'user2', name: 'Maria Santos (maria@marketing.com)' },
+    { id: 'user3', name: 'Pedro Costa (pedro@agencia.com)' }
+  ];
+
+  const adAccountsByUser = {
+    'user1': [
+      { id: 'act_123456789', name: 'Loja Virtual - Vendas Online' },
+      { id: 'act_123456790', name: 'Campanha Black Friday' }
+    ],
+    'user2': [
+      { id: 'act_987654321', name: 'Marketing Digital - Leads' },
+      { id: 'act_987654322', name: 'Branding - Awareness' }
+    ],
+    'user3': [
+      { id: 'act_555444333', name: 'Agência - Cliente A' },
+      { id: 'act_555444334', name: 'Agência - Cliente B' },
+      { id: 'act_555444335', name: 'Agência - Cliente C' }
+    ]
+  };
 
   const salesData = [
     { month: 'Jan', sales: 89500, visitors: 24700 },
@@ -502,7 +527,15 @@ const Product = () => {
                   {uploadType === 'api' && (
                     <div className="space-y-2">
                       <label className="text-sm font-medium dark:text-gray-200">Selecionar Integração</label>
-                      <Select value={selectedIntegration} onValueChange={setSelectedIntegration}>
+                      <Select 
+                        value={selectedIntegration} 
+                        onValueChange={(value) => {
+                          setSelectedIntegration(value);
+                          // Reset subsequent selections when integration changes
+                          setSelectedFacebookUser('');
+                          setSelectedAdAccount('');
+                        }}
+                      >
                         <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                           <SelectValue placeholder="Escolha uma integração ativa" />
                         </SelectTrigger>
@@ -512,6 +545,55 @@ const Product = () => {
                           <SelectItem value="instagram-1">Instagram Business - Perfil Principal</SelectItem>
                         </SelectContent>
                       </Select>
+
+                      {/* Facebook User Selection - Only show when Facebook Ads is selected */}
+                      {selectedIntegration === 'facebook-ads-1' && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium dark:text-gray-200">Selecionar Usuário Logado</label>
+                          <Select 
+                            value={selectedFacebookUser} 
+                            onValueChange={(value) => {
+                              setSelectedFacebookUser(value);
+                              // Reset ad account selection when user changes
+                              setSelectedAdAccount('');
+                            }}
+                          >
+                            <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                              <SelectValue placeholder="Escolha o usuário logado" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {facebookUsers.map((user) => (
+                                <SelectItem key={user.id} value={user.id}>
+                                  {user.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
+                      {/* Ad Account Selection - Only show when Facebook user is selected */}
+                      {selectedIntegration === 'facebook-ads-1' && selectedFacebookUser && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium dark:text-gray-200">Selecionar Conta de Ads</label>
+                          <Select 
+                            value={selectedAdAccount} 
+                            onValueChange={setSelectedAdAccount}
+                          >
+                            <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                              <SelectValue placeholder="Escolha a conta de ads" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {adAccountsByUser[selectedFacebookUser as keyof typeof adAccountsByUser]?.map((account) => (
+                                <SelectItem key={account.id} value={account.id}>
+                                  {account.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         Importe dados em tempo real das suas integrações configuradas
                       </p>
@@ -523,7 +605,8 @@ const Product = () => {
                     disabled={
                       (uploadType === 'file' && !selectedFile) || 
                       (uploadType === 'url' && !spreadsheetUrl) ||
-                      (uploadType === 'api' && !selectedIntegration)
+                      (uploadType === 'api' && !selectedIntegration) ||
+                      (uploadType === 'api' && selectedIntegration === 'facebook-ads-1' && (!selectedFacebookUser || !selectedAdAccount))
                     }
                     className="w-full"
                   >
