@@ -138,21 +138,9 @@ const Integrations = () => {
 
   const fetchIntegrations = async () => {
     try {
-      const response = await fetch('http://localhost:8000/contas');
-      const data = await response.json();
-
-      const parsed: Integration[] = data.map((item: any) => ({
-        id: String(item.id),
-        name: item.nome_conta,
-        type: item.tipo,
-        status: 'connected',
-        accessToken: item.token,
-        accountId: item.identificador_conta,
-        lastSync: item.data_conexao,
-        isActive: item.ativo,
-      }));
-
-      setIntegrations(parsed);
+      // Como agora filtramos por usuário, não precisamos carregar todas as integrações por padrão
+      // Elas serão carregadas quando um usuário for selecionado
+      setIntegrations([]);
     } catch (error) {
       console.error("Erro ao buscar integrações:", error);
     }
