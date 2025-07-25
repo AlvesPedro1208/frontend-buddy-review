@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
+import { ResizableCard } from '@/components/ResizableCard';
 import { 
   BarChart, 
   Bar, 
@@ -627,29 +628,22 @@ const Product = () => {
           {dynamicCharts.length > 0 && (
             <div className="mb-8">
               <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">📊 Visualizações Geradas pela IA</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="flex flex-wrap gap-6">
                 {dynamicCharts.map((chart) => (
-                  <Card key={chart.id} className="hover:shadow-lg transition-shadow relative dark:bg-gray-800 dark:border-gray-700">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-2 right-2 z-10 h-8 w-8 p-0 dark:hover:bg-gray-700"
-                      onClick={() => removeChart(chart.id)}
-                    >
-                      <X className="h-4 w-4 dark:text-gray-300" />
-                    </Button>
-                    <CardHeader>
-                      <CardTitle className="flex items-center text-lg dark:text-gray-200">
-                        {chart.type === 'bar' && <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />}
-                        {chart.type === 'line' && <LineChartIcon className="h-5 w-5 mr-2 text-green-600" />}
-                        {chart.type === 'pie' && <PieChartIcon className="h-5 w-5 mr-2 text-purple-600" />}
-                        {chart.title}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {renderDynamicChart(chart)}
-                    </CardContent>
-                  </Card>
+                  <ResizableCard
+                    key={chart.id}
+                    id={chart.id}
+                    title={chart.title}
+                    onRemove={removeChart}
+                    initialWidth={450}
+                    initialHeight={400}
+                    minWidth={300}
+                    minHeight={250}
+                    maxWidth={800}
+                    maxHeight={600}
+                  >
+                    {renderDynamicChart(chart)}
+                  </ResizableCard>
                 ))}
               </div>
             </div>
@@ -714,89 +708,25 @@ const Product = () => {
           </div>
 
           {/* Charts Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="flex flex-wrap gap-6 mb-8">
             {/* Sales Chart */}
-            <Card className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center dark:text-gray-200">
-                  <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
-                  Vendas por Mês
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={salesData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                    <XAxis dataKey="month" tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
-                    <YAxis tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
-                    <Tooltip 
-                      formatter={(value) => [`R$ ${value.toLocaleString()}`, 'Vendas']} 
-                      contentStyle={{
-                        backgroundColor: isDarkMode ? '#374151' : '#ffffff',
-                        border: `1px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`,
-                        borderRadius: '8px',
-                        color: isDarkMode ? '#f9fafb' : '#111827'
-                      }}
-                    />
-                    <Bar dataKey="sales" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Traffic Sources */}
-            <Card className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader>
-                <CardTitle className="flex items-center dark:text-gray-200">
-                  <PieChartIcon className="h-5 w-5 mr-2 text-purple-600" />
-                  Fontes de Tráfego
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={trafficData}
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      dataKey="value"
-                      label={({ name, value }) => `${name}: ${value}`}
-                    >
-                      {trafficData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: isDarkMode ? '#374151' : '#ffffff',
-                        border: `1px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`,
-                        borderRadius: '8px',
-                        color: isDarkMode ? '#f9fafb' : '#111827'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Daily Visitors Chart */}
-          <Card className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="flex items-center dark:text-gray-200">
-                <LineChartIcon className="h-5 w-5 mr-2 text-green-600" />
-                Visitantes Diários - Últimos 15 dias
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={dailyVisitors}>
+            <ResizableCard
+              id="sales-chart"
+              title="Vendas por Mês"
+              initialWidth={500}
+              initialHeight={400}
+              minWidth={350}
+              minHeight={300}
+              maxWidth={700}
+              maxHeight={500}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={salesData}>
                   <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                  <XAxis dataKey="day" tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
+                  <XAxis dataKey="month" tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
                   <YAxis tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
                   <Tooltip 
-                    formatter={(value) => [value, 'Visitantes']} 
+                    formatter={(value) => [`R$ ${value.toLocaleString()}`, 'Vendas']} 
                     contentStyle={{
                       backgroundColor: isDarkMode ? '#374151' : '#ffffff',
                       border: `1px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`,
@@ -804,17 +734,85 @@ const Product = () => {
                       color: isDarkMode ? '#f9fafb' : '#111827'
                     }}
                   />
-                  <Line 
-                    type="monotone" 
-                    dataKey="visitors" 
-                    stroke="#10B981" 
-                    strokeWidth={3}
-                    dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
-                  />
-                </LineChart>
+                  <Bar dataKey="sales" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                </BarChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
+            </ResizableCard>
+
+            {/* Traffic Sources */}
+            <ResizableCard
+              id="traffic-chart"
+              title="Fontes de Tráfego"
+              initialWidth={500}
+              initialHeight={400}
+              minWidth={350}
+              minHeight={300}
+              maxWidth={700}
+              maxHeight={500}
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={trafficData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    dataKey="value"
+                    label={({ name, value }) => `${name}: ${value}`}
+                  >
+                    {trafficData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: isDarkMode ? '#374151' : '#ffffff',
+                      border: `1px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`,
+                      borderRadius: '8px',
+                      color: isDarkMode ? '#f9fafb' : '#111827'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </ResizableCard>
+          </div>
+
+          {/* Daily Visitors Chart */}
+          <ResizableCard
+            id="daily-visitors-chart"
+            title="Visitantes Diários - Últimos 15 dias"
+            initialWidth={600}
+            initialHeight={400}
+            minWidth={400}
+            minHeight={300}
+            maxWidth={900}
+            maxHeight={500}
+            className="mb-8"
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={dailyVisitors}>
+                <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
+                <XAxis dataKey="day" tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
+                <YAxis tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
+                <Tooltip 
+                  formatter={(value) => [value, 'Visitantes']} 
+                  contentStyle={{
+                    backgroundColor: isDarkMode ? '#374151' : '#ffffff',
+                    border: `1px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`,
+                    borderRadius: '8px',
+                    color: isDarkMode ? '#f9fafb' : '#111827'
+                  }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="visitors" 
+                  stroke="#10B981" 
+                  strokeWidth={3}
+                  dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </ResizableCard>
         </div>
 
         {/* AI Chat Sidebar */}
