@@ -6,9 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, Loader2, BarChart3 } from 'lucide-react';
+import { useDarkMode } from '@/hooks/useDarkMode';
+import { Eye, EyeOff, Loader2, Sun, Moon, BarChart3 } from 'lucide-react';
 
 const Login = () => {
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -55,31 +57,44 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
-      {/* Navbar */}
-      <nav className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 p-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="p-2 rounded-full bg-blue-600 text-white">
-              <BarChart3 className="h-6 w-6" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+      {/* Header */}
+      <header className="fixed top-0 w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 z-50 transition-colors duration-300">
+        <div className="container mx-auto px-6 py-4 flex justify-between items-center">
+          <Link to="/">
+            <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent cursor-pointer">
               DashboardAI
-            </span>
+            </div>
           </Link>
-          
+          <nav className="hidden md:flex space-x-8">
+            <Link to="/" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Início</Link>
+            <a href="/#sobre" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Sobre</a>
+            <a href="/#recursos" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Recursos</a>
+            <a href="/#contato" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Contato</a>
+          </nav>
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-muted-foreground">Não tem uma conta?</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleDarkMode}
+              className="h-9 w-9 p-0"
+            >
+              {isDarkMode ? (
+                <Sun className="h-4 w-4" />
+              ) : (
+                <Moon className="h-4 w-4" />
+              )}
+            </Button>
             <Link to="/register">
-              <Button variant="outline" size="sm">
-                Criar conta
+              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                Cadastrar
               </Button>
             </Link>
           </div>
         </div>
-      </nav>
+      </header>
 
       {/* Main Content */}
-      <div className="flex items-center justify-center p-4" style={{ minHeight: 'calc(100vh - 80px)' }}>
+      <div className="pt-24 flex items-center justify-center p-4" style={{ minHeight: 'calc(100vh - 80px)' }}>
         <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
