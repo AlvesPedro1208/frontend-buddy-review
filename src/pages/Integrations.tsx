@@ -106,7 +106,6 @@ const Integrations = () => {
   const [selectedFacebookId, setSelectedFacebookId] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<FacebookAccount[]>([]);
   const [loading, setLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const accountsPerPage = 5;
@@ -134,19 +133,32 @@ const Integrations = () => {
   };
 
   const fetchUsers = async () => {
-    // Adicionando usuários de exemplo para demonstração das funcionalidades
-    setUsers([
-      { facebook_id: '1', username: 'Usuario Exemplo 1', email: 'user1@example.com' },
-      { facebook_id: '2', username: 'Usuario Exemplo 2', email: 'user2@example.com' },
-      { facebook_id: '3', username: 'Usuario Exemplo 3', email: 'user3@example.com' }
-    ]);
+    try {
+      const data = await getAllFacebookUsers();
+      setUsers(data);
+    } catch (error) {
+      console.error("Erro ao buscar usuários:", error);
+      setUsers([]);
+    }
   };
 
   const fetchIntegrations = async () => {
     try {
-      // Como agora filtramos por usuário, não precisamos carregar todas as integrações por padrão
-      // Elas serão carregadas quando um usuário for selecionado
-      setIntegrations([]);
+      const response = await fetch('http://localhost:8000/contas');
+      const data = await response.json();
+
+      const parsed: Integration[] = data.map((item: any) => ({
+        id: String(item.id),
+        name: item.nome_conta,
+        type: item.tipo,
+        status: 'connected',
+        accessToken: item.token,
+        accountId: item.identificador_conta,
+        lastSync: item.data_conexao,
+        isActive: item.ativo,
+      }));
+
+      setIntegrations(parsed);
     } catch (error) {
       console.error("Erro ao buscar integrações:", error);
     }
@@ -157,13 +169,18 @@ const Integrations = () => {
     fetchUsers();
   }, []);
 
-  // Reset state when user changes
+  // Carrega contas quando um usuário específico é selecionado
   useEffect(() => {
-    setAccounts([]);
-    setHasSearched(false);
-    setSearchTerm('');
-    setCurrentPage(1);
-  }, [selectedUser]);
+    if (selectedFacebookId) {
+      setLoading(true);
+      getUserAdAccountsFromBackend(selectedFacebookId)
+        .then(setAccounts)
+        .catch(() => setAccounts([]))
+        .finally(() => setLoading(false));
+    } else {
+      setAccounts([]);
+    }
+  }, [selectedFacebookId]);
 
   // Limpar estado de importação quando o componente for desmontado
   useEffect(() => {
@@ -457,61 +474,6 @@ const Integrations = () => {
     }
   };
 
-  // Função para buscar contas
-  const handleSearchAccounts = async () => {
-    if (!selectedFacebookId) return;
-    
-    setLoading(true);
-    setHasSearched(true);
-    try {
-      const data = await getUserAdAccountsFromBackend(selectedFacebookId);
-      setAccounts(data);
-      setCurrentPage(1);
-    } catch (error) {
-      console.error('Erro ao buscar contas:', error);
-      // Adicionar contas de exemplo para demonstração
-      const exampleAccounts: FacebookAccount[] = [
-        {
-          id: 1,
-          name: 'Conta Exemplo 1',
-          account_id: 'act_123456789',
-          nome_conta: 'Conta Exemplo 1',
-          identificador_conta: 'act_123456789',
-          plataforma: 'Facebook Ads',
-          tipo: 'facebook',
-          data_conexao: new Date().toISOString(),
-          ativo: true
-        },
-        {
-          id: 2, 
-          name: 'Conta Exemplo 2',
-          account_id: 'act_987654321',
-          nome_conta: 'Conta Exemplo 2',
-          identificador_conta: 'act_987654321',
-          plataforma: 'Facebook Ads',
-          tipo: 'facebook',
-          data_conexao: new Date().toISOString(),
-          ativo: false
-        },
-        {
-          id: 3,
-          name: 'Marketing Digital Ltda',
-          account_id: 'act_555666777',
-          nome_conta: 'Marketing Digital Ltda',
-          identificador_conta: 'act_555666777',
-          plataforma: 'Facebook Ads',
-          tipo: 'facebook',
-          data_conexao: new Date().toISOString(),
-          ativo: true
-        }
-      ];
-      setAccounts(exampleAccounts);
-      setCurrentPage(1);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Filtrar contas por nome
   const filteredAccounts = accounts.filter(account => 
     (account.name || account.nome_conta || '').toLowerCase().includes(searchTerm.toLowerCase())
@@ -616,33 +578,15 @@ const Integrations = () => {
               onChange={(e) => setSelectedFacebookId(e.target.value || null)}
               className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[200px] z-10"
             >
-              <option value="">Todos os usuários</option>
+              <option value="">---</option>
               {users.map((user) => (
                 <option key={user.facebook_id} value={user.facebook_id}>
                   {user.username}
                 </option>
               ))}
             </select>
-            
-            <Button 
-              onClick={handleSearchAccounts}
-              disabled={loading || !selectedFacebookId}
-              className="flex items-center space-x-2"
-            >
-              <Search className="h-4 w-4" />
-              <span>{loading ? 'Buscando...' : 'Buscar Contas'}</span>
-            </Button>
           </div>
         </div>
-
-        {/* Results Counter */}
-        {selectedFacebookId && hasSearched && (
-          <div className="mb-4">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              <span className="font-medium">{filteredAccounts.length}</span> conta{filteredAccounts.length !== 1 ? 's' : ''} encontrada{filteredAccounts.length !== 1 ? 's' : ''}
-            </div>
-          </div>
-        )}
 
         {/* Integrações Ativas */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 min-h-[200px]">
@@ -653,21 +597,7 @@ const Integrations = () => {
             </div>
           )}
           
-          {!loading && selectedFacebookId && !hasSearched && (
-            <div className="text-center py-8">
-              <div className="text-gray-400 mb-4">
-                <Search className="h-12 w-12 mx-auto" />
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Pronto para buscar
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400">
-                Clique no botão "Buscar Contas" para carregar as integrações deste usuário.
-              </p>
-            </div>
-          )}
-          
-          {!loading && selectedFacebookId && hasSearched && accounts.length === 0 && (
+          {!loading && selectedFacebookId && accounts.length === 0 && (
             <div className="text-center py-8">
               <div className="text-gray-400 mb-4">
                 <Settings className="h-12 w-12 mx-auto" />
@@ -695,7 +625,7 @@ const Integrations = () => {
             </div>
           )}
           
-          {!loading && hasSearched && filteredAccounts.length === 0 && searchTerm && (
+          {!loading && filteredAccounts.length === 0 && searchTerm && (
             <div className="text-center py-8">
               <div className="text-gray-400 mb-4">
                 <Search className="h-12 w-12 mx-auto" />
