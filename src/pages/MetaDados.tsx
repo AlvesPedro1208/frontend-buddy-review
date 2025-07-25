@@ -513,8 +513,8 @@ const MetaDados = () => {
         {/* Tabela */}
         <Card>
           <CardContent className="p-0">
-            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
-              <Table className="min-w-full">
+            <div className="w-full overflow-x-auto max-w-full">
+              <Table style={{ minWidth: '1200px' }}>
                 <TableHeader>
                   <TableRow>
                     <TableHead 
