@@ -539,6 +539,7 @@ const Integrations = () => {
   return (
     <ProductLayout title="Integrações de API">
       <div className="space-y-6">
+        {/* Header com descrição */}
         <div className="flex items-center justify-between">
           <div>
             <p className="text-gray-600 dark:text-gray-400">
