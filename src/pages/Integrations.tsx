@@ -616,56 +616,36 @@ const Integrations = () => {
         </div>
 
         {/* Account Filters */}
-        {selectedFacebookId && (
-          <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
-            <div className="flex items-center space-x-4">
-              <div className="flex-1">
-                <label htmlFor="account-search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Buscar
-                </label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="account-search"
-                    placeholder="Nome da campanha, conjunto ou anúncio..."
-                    value={searchTerm}
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="pl-10"
-                  />
-                </div>
-              </div>
-              
-              <div className="min-w-[200px]">
-                <label htmlFor="account-select" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Conta Meta Ads
-                </label>
-                <select
-                  id="account-select"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  defaultValue=""
-                >
-                  <option value="">Todas as contas</option>
-                  {accounts.map((account) => (
-                    <option key={account.id} value={account.id}>
-                      {account.name || account.nome_conta}
-                    </option>
-                  ))}
-                </select>
+        <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
+          <div className="flex items-center space-x-4">
+            <div className="flex-1">
+              <label htmlFor="account-search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Buscar
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="account-search"
+                  placeholder="Nome da campanha, conjunto ou anúncio..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="pl-10"
+                />
               </div>
             </div>
-            
-            {hasSearched && (
-              <div className="mt-4 flex items-center justify-between">
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  <span className="font-medium">{filteredAccounts.length}</span> conta{filteredAccounts.length !== 1 ? 's' : ''} encontrada{filteredAccounts.length !== 1 ? 's' : ''}
-                </div>
-              </div>
-            )}
           </div>
-        )}
+          
+          {selectedFacebookId && hasSearched && (
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="font-medium">{filteredAccounts.length}</span> conta{filteredAccounts.length !== 1 ? 's' : ''} encontrada{filteredAccounts.length !== 1 ? 's' : ''}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Integrações Ativas */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 min-h-[200px]">
