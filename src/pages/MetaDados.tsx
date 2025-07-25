@@ -37,14 +37,31 @@ const MetaDados = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<keyof MetaAdsData>("campaign_name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [usuarios, setUsuarios] = useState<{ id: number; nome: string }[]>([]);
+  const [usuarioSelecionado, setUsuarioSelecionado] = useState<string>("");
   const [contas, setContas] = useState<{ id: number; nome: string; account_id: string }[]>([]);
   const [contaSelecionada, setContaSelecionada] = useState<string>("");
   const { toast } = useToast();
 
   const itemsPerPage = 10;
 
-  // Filtrar e ordenar dados
+  // Buscar usuários e contas
   useEffect(() => {
+    const fetchUsuarios = async () => {
+      try {
+        // Mock de usuários - substitua pela sua API real
+        const usuariosMock = [
+          { id: 1, nome: "João Silva" },
+          { id: 2, nome: "Maria Santos" },
+          { id: 3, nome: "Pedro Costa" }
+        ];
+        setUsuarios(usuariosMock);
+        if (usuariosMock.length > 0) setUsuarioSelecionado(usuariosMock[0].id.toString());
+      } catch (error) {
+        console.error("Erro ao buscar usuários:", error);
+      }
+    };
+
     const fetchContas = async () => {
       try {
         const res = await fetch("http://localhost:8000/contas/");
@@ -66,6 +83,7 @@ const MetaDados = () => {
       }
     };
 
+    fetchUsuarios();
     fetchContas();
   }, []);
 
@@ -220,7 +238,43 @@ const MetaDados = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+              {/* Seleção de Usuário */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  Usuário Logado
+                </label>
+                <select
+                  className="w-full px-3 py-2 border rounded-md text-sm"
+                  value={usuarioSelecionado}
+                  onChange={(e) => setUsuarioSelecionado(e.target.value)}
+                >
+                  {usuarios.map((usuario) => (
+                    <option key={usuario.id} value={usuario.id.toString()}>
+                      {usuario.nome}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Dropdown de Contas Meta Ads */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
+                  Conta Meta Ads
+                </label>
+                <select
+                  className="w-full px-3 py-2 border rounded-md text-sm"
+                  value={contaSelecionada}
+                  onChange={(e) => setContaSelecionada(e.target.value)}
+                >
+                  {contas.map((conta) => (
+                    <option key={conta.id} value={conta.account_id}>
+                      {conta.nome}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Data Inicial */}
               <div>
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
@@ -297,25 +351,7 @@ const MetaDados = () => {
                 </div>
               </div>
 
-              {/* Dropdown de Contas Meta Ads */}
-              <div>
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
-                  Conta Meta Ads
-                </label>
-                <select
-                  className="w-full px-3 py-2 border rounded-md text-sm"
-                  value={contaSelecionada}
-                  onChange={(e) => setContaSelecionada(e.target.value)}
-                >
-                  {contas.map((conta) => (
-                    <option key={conta.id} value={conta.account_id}>
-                      {conta.nome}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Botão Recarregar */}
+              {/* Botão Obter Dados */}
               <div className="flex items-end">
                 <Button 
                   onClick={recarregarDados} 
@@ -327,7 +363,7 @@ const MetaDados = () => {
                   ) : (
                     <Download className="mr-2 h-4 w-4" />
                   )}
-                  Recarregar Dados da Meta
+                  Obter Dados
                 </Button>
               </div>
             </div>
@@ -414,7 +450,7 @@ const MetaDados = () => {
                   ) : (
                     <TableRow>
                       <TableCell colSpan={11} className="text-center py-8 text-gray-500">
-                        Nenhum dado encontrado. Clique em "Recarregar Dados da Meta" para importar.
+                        Nenhum dado encontrado. Clique em "Obter Dados" para importar.
                       </TableCell>
                     </TableRow>
                   )}
