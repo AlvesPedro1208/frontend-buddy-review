@@ -14,8 +14,6 @@ import {
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { AppSidebar } from '@/components/AppSidebar';
-import { DashboardGrid } from '@/components/DashboardGrid';
-import { useDashboardLayout, DashboardItem } from '@/hooks/useDashboardLayout';
 import { 
   Send, 
   Upload, 
@@ -75,12 +73,46 @@ const Product = () => {
     { day: 13, visitors: 120 }, { day: 14, visitors: 200 }, { day: 15, visitors: 180 }
   ];
 
-  // Mock data for Facebook users and ad accounts
-  const facebookUsers = [
-    { id: 'user1', name: 'João Silva (joao@empresa.com)' },
-    { id: 'user2', name: 'Maria Santos (maria@marketing.com)' },
-    { id: 'user3', name: 'Pedro Costa (pedro@agencia.com)' }
-  ];
+  interface DynamicChart {
+    id: string;
+    type: 'bar' | 'line' | 'pie';
+    title: string;
+    data: unknown[];
+    config?: {
+      xKey?: string;
+      yKey?: string;
+      colors?: string[];
+      dataKey?: string;
+    };
+  }
+
+  const [dynamicCharts, setDynamicCharts] = useState<DynamicChart[]>([]);
+  const [facebookUsers, setFacebookUsers] = useState<Array<{ id: string; name: string }>>([]);
+  const [adAccounts, setAdAccounts] = useState<Array<{ id: string; name: string }>>([]);
+
+  useEffect(() => {
+    // Buscar usuários reais do backend
+    getAllFacebookUsers().then(users => {
+      setFacebookUsers(users.map(u => ({ id: u.facebook_id, name: u.username })));
+    }).catch(() => {
+      setFacebookUsers([]);
+    });
+  }, []);
+
+  // Buscar contas de Ads reais ao selecionar usuário
+  useEffect(() => {
+    if (selectedFacebookUser) {
+      setSelectedAdAccount('');
+      getUserAdAccountsFromBackend(selectedFacebookUser).then(accounts => {
+        setAdAccounts(accounts.map((a: { identificador_conta?: string; account_id?: string; id?: string; nome_conta?: string; name?: string }) => ({ id: a.identificador_conta || a.account_id || a.id || '', name: a.nome_conta || a.name || '' })));
+      }).catch(() => {
+        setAdAccounts([]);
+      });
+    } else {
+      setAdAccounts([]);
+      setSelectedAdAccount('');
+    }
+  }, [selectedFacebookUser]);
 
   const adAccountsByUser = {
     'user1': [
@@ -97,63 +129,6 @@ const Product = () => {
       { id: 'act_555444335', name: 'Agência - Cliente C' }
     ]
   };
-
-  // Initialize dashboard with default items
-  const initialDashboardItems: DashboardItem[] = [
-    {
-      id: 'metric-1',
-      type: 'metric',
-      title: 'Visitantes Únicos',
-      layout: { x: 0, y: 0, w: 3, h: 2 }
-    },
-    {
-      id: 'metric-2',
-      type: 'metric',
-      title: 'Total Pageviews',
-      layout: { x: 3, y: 0, w: 3, h: 2 }
-    },
-    {
-      id: 'metric-3',
-      type: 'metric',
-      title: 'Taxa de Rejeição',
-      layout: { x: 6, y: 0, w: 3, h: 2 }
-    },
-    {
-      id: 'metric-4',
-      type: 'metric',
-      title: 'Duração da Visita',
-      layout: { x: 9, y: 0, w: 3, h: 2 }
-    },
-    {
-      id: 'sales-chart',
-      type: 'chart',
-      chartType: 'bar',
-      title: 'Vendas por Mês',
-      data: salesData,
-      config: { xKey: 'month', yKey: 'sales' },
-      layout: { x: 0, y: 2, w: 6, h: 4 }
-    },
-    {
-      id: 'traffic-chart',
-      type: 'chart',
-      chartType: 'pie',
-      title: 'Fontes de Tráfego',
-      data: trafficData,
-      config: { dataKey: 'value' },
-      layout: { x: 6, y: 2, w: 6, h: 4 }
-    },
-    {
-      id: 'daily-visitors-chart',
-      type: 'chart',
-      chartType: 'line',
-      title: 'Visitantes Diários - Últimos 15 dias',
-      data: dailyVisitors,
-      config: { xKey: 'day', yKey: 'visitors' },
-      layout: { x: 0, y: 6, w: 12, h: 4 }
-    }
-  ];
-
-  const { items: dashboardItems, layouts, addItem, removeItem, updateLayouts } = useDashboardLayout(initialDashboardItems);
 
   const isChartRequest = (pergunta: string): boolean => {
     const chartKeywords = [
