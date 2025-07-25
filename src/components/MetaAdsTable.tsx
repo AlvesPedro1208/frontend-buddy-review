@@ -52,8 +52,10 @@ const MetaAdsTable = ({
 
   return (
     <div className="relative w-full">
-      <div className="h-[600px] w-full overflow-auto border rounded-md bg-white dark:bg-gray-900">
-      <Table className="min-w-full">
+      <div className="h-[600px] w-full overflow-y-auto border rounded-md bg-white dark:bg-gray-900">
+        <div className="overflow-x-auto">
+          <Table className="min-w-full"
+                 style={{ minWidth: 'max-content' }}>
         <TableHeader className="sticky top-0 bg-background z-10">
           <TableRow>
             {camposSelecionados.map(campo => {
@@ -119,6 +121,7 @@ const MetaAdsTable = ({
           )}
         </TableBody>
       </Table>
+        </div>
       </div>
     </div>
   );
