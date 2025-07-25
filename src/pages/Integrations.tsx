@@ -134,18 +134,12 @@ const Integrations = () => {
   };
 
   const fetchUsers = async () => {
-    try {
-      const data = await getAllFacebookUsers();
-      setUsers(data);
-    } catch (error) {
-      console.error("Erro ao buscar usuários:", error);
-      // Adicionar usuários de exemplo para demonstração
-      setUsers([
-        { facebook_id: '1', username: 'Usuario Exemplo 1', email: 'user1@example.com' },
-        { facebook_id: '2', username: 'Usuario Exemplo 2', email: 'user2@example.com' },
-        { facebook_id: '3', username: 'Usuario Exemplo 3', email: 'user3@example.com' }
-      ]);
-    }
+    // Adicionando usuários de exemplo para demonstração das funcionalidades
+    setUsers([
+      { facebook_id: '1', username: 'Usuario Exemplo 1', email: 'user1@example.com' },
+      { facebook_id: '2', username: 'Usuario Exemplo 2', email: 'user2@example.com' },
+      { facebook_id: '3', username: 'Usuario Exemplo 3', email: 'user3@example.com' }
+    ]);
   };
 
   const fetchIntegrations = async () => {
