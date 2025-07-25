@@ -106,6 +106,7 @@ const Integrations = () => {
   const [selectedFacebookId, setSelectedFacebookId] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<FacebookAccount[]>([]);
   const [loading, setLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const accountsPerPage = 5;
@@ -169,17 +170,12 @@ const Integrations = () => {
     fetchUsers();
   }, []);
 
-  // Carrega contas quando um usuário específico é selecionado
+  // Reset state when user changes
   useEffect(() => {
-    if (selectedFacebookId) {
-      setLoading(true);
-      getUserAdAccountsFromBackend(selectedFacebookId)
-        .then(setAccounts)
-        .catch(() => setAccounts([]))
-        .finally(() => setLoading(false));
-    } else {
-      setAccounts([]);
-    }
+    setAccounts([]);
+    setHasSearched(false);
+    setSearchTerm('');
+    setCurrentPage(1);
   }, [selectedFacebookId]);
 
   // Limpar estado de importação quando o componente for desmontado
@@ -474,6 +470,24 @@ const Integrations = () => {
     }
   };
 
+  // Função para buscar contas
+  const handleSearchAccounts = async () => {
+    if (!selectedFacebookId) return;
+    
+    setLoading(true);
+    setHasSearched(true);
+    try {
+      const data = await getUserAdAccountsFromBackend(selectedFacebookId);
+      setAccounts(data);
+      setCurrentPage(1);
+    } catch (error) {
+      console.error('Erro ao buscar contas:', error);
+      setAccounts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Filtrar contas por nome
   const filteredAccounts = accounts.filter(account => 
     (account.name || account.nome_conta || '').toLowerCase().includes(searchTerm.toLowerCase())
@@ -585,6 +599,15 @@ const Integrations = () => {
                 </option>
               ))}
             </select>
+            
+            <Button 
+              onClick={handleSearchAccounts}
+              disabled={loading || !selectedFacebookId}
+              className="flex items-center space-x-2"
+            >
+              <Search className="h-4 w-4" />
+              <span>{loading ? 'Buscando...' : 'Buscar Contas'}</span>
+            </Button>
           </div>
         </div>
 
@@ -597,7 +620,21 @@ const Integrations = () => {
             </div>
           )}
           
-          {!loading && selectedFacebookId && accounts.length === 0 && (
+          {!loading && selectedFacebookId && !hasSearched && (
+            <div className="text-center py-8">
+              <div className="text-gray-400 mb-4">
+                <Search className="h-12 w-12 mx-auto" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                Pronto para buscar
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400">
+                Clique no botão "Buscar Contas" para carregar as integrações deste usuário.
+              </p>
+            </div>
+          )}
+          
+          {!loading && selectedFacebookId && hasSearched && accounts.length === 0 && (
             <div className="text-center py-8">
               <div className="text-gray-400 mb-4">
                 <Settings className="h-12 w-12 mx-auto" />
