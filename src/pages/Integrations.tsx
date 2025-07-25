@@ -109,7 +109,7 @@ const Integrations = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const accountsPerPage = 25;
+  const accountsPerPage = 10;
 
   const getStatusIcon = (status: Integration['status']) => {
     switch (status) {
