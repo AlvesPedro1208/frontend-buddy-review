@@ -73,10 +73,10 @@ export function ProductLayout({ children, title, showBackButton = true }: Produc
       <div className="min-h-screen flex w-full bg-gray-50 dark:bg-gray-900">
         <AppSidebar />
         
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-hidden">
           <ProductHeader title={title} showBackButton={showBackButton} />
           
-          <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-900">
+          <main className="flex-1 p-6 bg-gray-50 dark:bg-gray-900 overflow-auto">
             {children}
           </main>
         </div>

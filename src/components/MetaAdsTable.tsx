@@ -51,7 +51,8 @@ const MetaAdsTable = ({
   };
 
   return (
-    <div className="h-[600px] overflow-x-auto overflow-y-auto border rounded-md">
+    <div className="relative w-full">
+      <div className="h-[600px] w-full overflow-auto border rounded-md bg-white dark:bg-gray-900">
       <Table className="min-w-full">
         <TableHeader className="sticky top-0 bg-background z-10">
           <TableRow>
@@ -118,6 +119,7 @@ const MetaAdsTable = ({
           )}
         </TableBody>
       </Table>
+      </div>
     </div>
   );
 };
