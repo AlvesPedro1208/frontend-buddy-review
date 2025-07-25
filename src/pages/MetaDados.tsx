@@ -429,7 +429,7 @@ const MetaDados = () => {
                                     setCamposSelecionados(camposSelecionados.filter(c => c !== campo.value));
                                   }
                                 }}
-                                className="w-4 h-4 text-black bg-white border-gray-300 rounded focus:ring-black focus:ring-2 accent-black"
+                                className="rounded border-border"
                               />
                               <span className="text-sm">{campo.label}</span>
                             </label>
