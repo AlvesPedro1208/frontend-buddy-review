@@ -566,6 +566,22 @@ const MetaDados = () => {
                     >
                       Gasto {sortField === "spend" && (sortDirection === "asc" ? "↑" : "↓")}
                     </TableHead>
+                    {/* Colunas dos campos opcionais selecionados */}
+                    {camposSelecionados
+                      .filter(campo => !["campaign_name", "adset_name", "ad_name", "impressions", "reach", "clicks", "cpc", "spend"].includes(campo))
+                      .map(campo => {
+                        const opcao = opcoesCampos.find(o => o.value === campo);
+                        return (
+                          <TableHead 
+                            key={campo}
+                            className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 text-right"
+                            onClick={() => handleSort(campo as keyof MetaAdsData)}
+                          >
+                            {opcao?.label} {sortField === campo && (sortDirection === "asc" ? "↑" : "↓")}
+                          </TableHead>
+                        );
+                      })
+                    }
                     <TableHead>Data Início</TableHead>
                     <TableHead>Data Fim</TableHead>
                   </TableRow>
@@ -578,18 +594,46 @@ const MetaDados = () => {
                         <TableCell>{item.adset_name}</TableCell>
                         <TableCell>{item.ad_name}</TableCell>
                         <TableCell>{getStatusBadge(item.status)}</TableCell>
-                        <TableCell className="text-right">{item.impressions.toLocaleString()}</TableCell>
-                        <TableCell className="text-right">{item.reach.toLocaleString()}</TableCell>
-                        <TableCell className="text-right">{item.clicks.toLocaleString()}</TableCell>
-                        <TableCell className="text-right">R$ {item.cpc.toFixed(2)}</TableCell>
-                        <TableCell className="text-right">R$ {item.spend.toFixed(2)}</TableCell>
+                        <TableCell className="text-right">{item.impressions?.toLocaleString() || '-'}</TableCell>
+                        <TableCell className="text-right">{item.reach?.toLocaleString() || '-'}</TableCell>
+                        <TableCell className="text-right">{item.clicks?.toLocaleString() || '-'}</TableCell>
+                        <TableCell className="text-right">R$ {item.cpc?.toFixed(2) || '0.00'}</TableCell>
+                        <TableCell className="text-right">R$ {item.spend?.toFixed(2) || '0.00'}</TableCell>
+                        {/* Células dos campos opcionais selecionados */}
+                        {camposSelecionados
+                          .filter(campo => !["campaign_name", "adset_name", "ad_name", "impressions", "reach", "clicks", "cpc", "spend"].includes(campo))
+                          .map(campo => {
+                            const valor = (item as any)[campo];
+                            let valorFormatado = '-';
+                            
+                            if (valor !== undefined && valor !== null) {
+                              if (typeof valor === 'number') {
+                                if (campo === 'ctr' || campo === 'frequency') {
+                                  valorFormatado = valor.toFixed(2) + '%';
+                                } else if (campo === 'cpm') {
+                                  valorFormatado = 'R$ ' + valor.toFixed(2);
+                                } else {
+                                  valorFormatado = valor.toLocaleString();
+                                }
+                              } else {
+                                valorFormatado = String(valor);
+                              }
+                            }
+                            
+                            return (
+                              <TableCell key={campo} className="text-right">
+                                {valorFormatado}
+                              </TableCell>
+                            );
+                          })
+                        }
                         <TableCell>{format(new Date(item.date_start), "dd/MM/yyyy")}</TableCell>
                         <TableCell>{format(new Date(item.date_stop), "dd/MM/yyyy")}</TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={11} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={11 + camposSelecionados.filter(campo => !["campaign_name", "adset_name", "ad_name", "impressions", "reach", "clicks", "cpc", "spend"].includes(campo)).length} className="text-center py-8 text-gray-500">
                         Nenhum dado encontrado. Clique em "Obter Dados" para importar.
                       </TableCell>
                     </TableRow>
