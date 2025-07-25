@@ -368,9 +368,6 @@ const Product = () => {
               <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 transition-colors">
                 <div className="flex items-center justify-between max-w-7xl mx-auto">
                   <div className="flex items-center space-x-4">
-                    <SidebarTrigger className="md:hidden">
-                      <Menu className="h-4 w-4" />
-                    </SidebarTrigger>
                     <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                       DashboardAI
                     </div>
