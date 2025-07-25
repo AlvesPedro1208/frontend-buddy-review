@@ -80,7 +80,6 @@ const MetaAdsTable = ({
         <div 
           ref={tableRef}
           className="overflow-x-auto"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           onScroll={(e) => {
             if (scrollRef.current) {
               scrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
