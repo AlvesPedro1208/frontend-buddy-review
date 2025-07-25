@@ -160,7 +160,7 @@ const MetaAdsTable = ({
             }
           }}
         >
-          <div style={{ width: 'max-content', height: '1px', minWidth: '100%' }}></div>
+          <div style={{ width: `${150 * camposSelecionados.length}px`, height: '1px' }}></div>
         </div>
       </div>
     </div>
