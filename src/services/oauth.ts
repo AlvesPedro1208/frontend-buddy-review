@@ -1,5 +1,5 @@
 // Serviço para integração OAuth com Facebook/Meta
-export interface FacebookAccount {
+export interface FacebookApiAccount {
   id: string;
   name: string;
   account_id: string;
@@ -11,7 +11,7 @@ export interface FacebookAccount {
 
 export interface FacebookOAuthResponse {
   access_token: string;
-  accounts: FacebookAccount[];
+  accounts: FacebookApiAccount[];
   user_id: string;
   user_name: string;
 }
@@ -51,7 +51,7 @@ export class FacebookOAuthService {
     return data.access_token;
   }
 
-  static async getUserAdAccounts(accessToken: string): Promise<FacebookAccount[]> {
+  static async getUserAdAccounts(accessToken: string): Promise<FacebookApiAccount[]> {
     const response = await fetch(
       `https://graph.facebook.com/v18.0/me/adaccounts?fields=id,name,account_id,account_status,currency,business_name,business&access_token=${accessToken}`
     );
@@ -65,7 +65,7 @@ export class FacebookOAuthService {
     return data.data || [];
   }
 
-  static async importAccountsToBackend(accessToken: string, accounts: FacebookAccount[]): Promise<void> {
+  static async importAccountsToBackend(accessToken: string, accounts: FacebookApiAccount[]): Promise<void> {
     const response = await fetch('http://localhost:8000/oauth/facebook/import', {
       method: 'POST',
       headers: {
@@ -116,5 +116,52 @@ export const handleOAuthCallback = async (code: string): Promise<FacebookOAuthRe
   } catch (error) {
     console.error('Erro no callback OAuth:', error);
     throw error;
+  }
+};
+
+// Novas interfaces e funções para buscar dados do backend
+export interface FacebookUser {
+  facebook_id: string;
+  username: string;
+  email: string;
+}
+
+export interface FacebookAccount {
+  id: number;
+  plataforma: string;
+  tipo: string;
+  token?: string;
+  identificador_conta: string;
+  nome_conta: string;
+  data_conexao: string;
+  ativo: boolean;
+  // Compatibilidade com campos alternativos
+  account_id?: string;
+  name?: string;
+}
+
+export const getAllFacebookUsers = async (): Promise<FacebookUser[]> => {
+  try {
+    const response = await fetch('http://localhost:8000/users');
+    if (!response.ok) {
+      throw new Error('Erro ao buscar usuários');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao buscar usuários:', error);
+    return [];
+  }
+};
+
+export const getUserAdAccountsFromBackend = async (facebookId: string): Promise<FacebookAccount[]> => {
+  try {
+    const response = await fetch(`http://localhost:8000/contas?facebook_id=${facebookId}`);
+    if (!response.ok) {
+      throw new Error('Erro ao buscar contas do usuário');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao buscar contas do usuário:', error);
+    return [];
   }
 };

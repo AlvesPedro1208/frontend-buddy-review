@@ -26,7 +26,7 @@ import {
   XCircle,
   AlertCircle
 } from 'lucide-react';
-import { FacebookOAuthService } from '@/services/oauth';
+import { FacebookOAuthService, getAllFacebookUsers, getUserAdAccountsFromBackend, FacebookUser, FacebookAccount } from '@/services/oauth';
 import { useToast } from '@/hooks/use-toast';
 import { ProductLayout } from '@/components/ProductLayout';
 
@@ -99,7 +99,10 @@ const Integrations = () => {
   const [isOAuthDialogOpen, setIsOAuthDialogOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string>('all');
-  const [users, setUsers] = useState<Array<{id: string, name: string, email: string}>>([]);
+  const [users, setUsers] = useState<FacebookUser[]>([]);
+  const [selectedFacebookId, setSelectedFacebookId] = useState<string | null>(null);
+  const [accounts, setAccounts] = useState<FacebookAccount[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const getStatusIcon = (status: Integration['status']) => {
     switch (status) {
@@ -125,23 +128,10 @@ const Integrations = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('http://localhost:8000/users');
-      if (response.ok) {
-        const data = await response.json();
-        // Garantir que data é um array
-        if (Array.isArray(data)) {
-          setUsers(data);
-        } else {
-          console.warn('Resposta de usuários não é um array:', data);
-          setUsers([]);
-        }
-      } else {
-        console.warn('Endpoint /users não encontrado, usando array vazio');
-        setUsers([]);
-      }
+      const data = await getAllFacebookUsers();
+      setUsers(data);
     } catch (error) {
       console.error("Erro ao buscar usuários:", error);
-      // Manter users como array vazio em caso de erro
       setUsers([]);
     }
   };
@@ -172,6 +162,19 @@ const Integrations = () => {
     fetchIntegrations();
     fetchUsers();
   }, []);
+
+  // Carrega contas quando um usuário específico é selecionado
+  useEffect(() => {
+    if (selectedFacebookId) {
+      setLoading(true);
+      getUserAdAccountsFromBackend(selectedFacebookId)
+        .then(setAccounts)
+        .catch(() => setAccounts([]))
+        .finally(() => setLoading(false));
+    } else {
+      setAccounts([]);
+    }
+  }, [selectedFacebookId]);
 
   // Limpar estado de importação quando o componente for desmontado
   useEffect(() => {
@@ -526,101 +529,113 @@ const Integrations = () => {
             </label>
             <select
               id="user-filter"
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
+              value={selectedFacebookId || ''}
+              onChange={(e) => setSelectedFacebookId(e.target.value || null)}
               className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[200px] z-10"
             >
-              <option value="all">Todos os usuários</option>
+              <option value="">Todos os usuários</option>
               {users.map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.name} ({user.email})
+                <option key={user.facebook_id} value={user.facebook_id}>
+                  {user.username}
                 </option>
               ))}
             </select>
           </div>
         </div>
 
-        {/* Active Integrations */}
-        <div>
-          
-          {integrations.filter(integration => 
-            selectedUser === 'all' || integration.accountId?.includes(selectedUser)
-          ).length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
+        {/* Integrações Ativas */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 min-h-[200px]">
+            {loading && (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-600 dark:text-gray-400">Carregando contas...</p>
+              </div>
+            )}
+            
+            {!loading && selectedFacebookId && accounts.length === 0 && (
+              <div className="text-center py-8">
                 <div className="text-gray-400 mb-4">
                   <Settings className="h-12 w-12 mx-auto" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  Nenhuma integração configurada
+                  Nenhuma conta encontrada
                 </h3>
                 <p className="text-gray-500 dark:text-gray-400">
-                  {selectedUser === 'all' 
-                    ? 'Adicione sua primeira integração clicando em uma das opções acima'
-                    : 'Nenhuma integração encontrada para este usuário'
-                  }
+                  Este usuário não possui contas conectadas.
                 </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {integrations.filter(integration => 
-                selectedUser === 'all' || integration.accountId?.includes(selectedUser)
-              ).map((integration) => {
-                const integationType = integrationTypes.find(t => t.type === integration.type);
-                const Icon = integationType?.icon || Settings;
-                
-                return (
-                  <Card key={integration.id}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className={`p-2 rounded-lg ${integationType?.color || 'bg-gray-600'}`}>
-                            <Icon className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <h3 className="font-medium text-gray-900 dark:text-white">
-                                {integration.name}
-                              </h3>
-                              {getStatusIcon(integration.status)}
-                              {getStatusBadge(integration.status)}
-                            </div>
-                            <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                              <span>Account ID: {integration.accountId}</span>
-                              <span>Última sincronização: {formatLastSync(integration.lastSync || '')}</span>
-                            </div>
-                          </div>
+              </div>
+            )}
+            
+            {!loading && !selectedFacebookId && (
+              <div className="text-center py-8">
+                <div className="text-gray-400 mb-4">
+                  <Settings className="h-12 w-12 mx-auto" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  Selecione um usuário
+                </h3>
+                <p className="text-gray-500 dark:text-gray-400">
+                  Escolha um usuário acima para visualizar suas integrações ativas.
+                </p>
+              </div>
+            )}
+            
+            {!loading && accounts.length > 0 && (
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                {accounts.map((conta) => {
+                  const integrationType = integrationTypes.find(t => t.type === 'facebook');
+                  const Icon = integrationType?.icon || Settings;
+                  
+                  return (
+                    <div key={conta.id} className="py-4 flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        <div className={`p-2 rounded-lg ${integrationType?.color || 'bg-gray-600'}`}>
+                          <Icon className="h-5 w-5 text-white" />
                         </div>
-                        
-                        <div className="flex items-center space-x-4">
+                        <div>
                           <div className="flex items-center space-x-2">
-                            <Label htmlFor={`toggle-${integration.id}`} className="text-sm">
-                              Ativo
-                            </Label>
-                            <Switch
-                              id={`toggle-${integration.id}`}
-                              checked={integration.isActive}
-                              onCheckedChange={(checked) => handleToggleIntegration(integration.id, checked)}
-                            />
+                            <h3 className="font-medium text-gray-900 dark:text-white">
+                              {conta.name || conta.nome_conta}
+                            </h3>
+                            {conta.ativo ? (
+                              <Badge className="bg-green-100 text-green-800">Ativo</Badge>
+                            ) : (
+                              <Badge variant="secondary">Inativo</Badge>
+                            )}
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteIntegration(Number(integration.id))}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+                            <span>Account ID: {conta.account_id || conta.identificador_conta}</span>
+                            <span>Plataforma: {conta.plataforma}</span>
+                          </div>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                      
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                          <Label htmlFor={`toggle-${conta.id}`} className="text-sm">
+                            Ativo
+                          </Label>
+                          <Switch
+                            id={`toggle-${conta.id}`}
+                            checked={conta.ativo}
+                            onCheckedChange={(checked) => handleToggleIntegration(String(conta.id), checked)}
+                          />
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteIntegration(conta.id)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
         {/* OAuth Integration Dialog */}
         <Dialog open={isOAuthDialogOpen} onOpenChange={setIsOAuthDialogOpen}>
