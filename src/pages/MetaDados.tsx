@@ -513,8 +513,9 @@ const MetaDados = () => {
         {/* Tabela */}
         <Card>
           <CardContent className="p-0">
-            <div className="w-full overflow-x-auto max-w-full">
-              <Table style={{ minWidth: '1200px' }}>
+            <div className="overflow-x-auto">
+              <Table className="w-max min-w-full table-fixed"
+                     style={{ width: 'max-content' }}>
                 <TableHeader>
                   <TableRow>
                     <TableHead 
