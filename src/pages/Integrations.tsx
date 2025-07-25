@@ -586,6 +586,26 @@ const Integrations = () => {
             </p>
           </div>
           
+          {/* Search Bar in the middle */}
+          <div className="flex-1 max-w-md mx-8">
+            <label htmlFor="account-search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Buscar
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                id="account-search"
+                placeholder="Nome da campanha, conjunto ou anúncio..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="pl-10"
+              />
+            </div>
+          </div>
+          
           <div className="flex items-center space-x-3">
             <label htmlFor="user-filter" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Filtrar por usuário:
@@ -615,37 +635,14 @@ const Integrations = () => {
           </div>
         </div>
 
-        {/* Account Filters */}
-        <div className="bg-gray-50 dark:bg-gray-900/50 p-4 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <label htmlFor="account-search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Buscar
-              </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  id="account-search"
-                  placeholder="Nome da campanha, conjunto ou anúncio..."
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="pl-10"
-                />
-              </div>
+        {/* Results Counter */}
+        {selectedFacebookId && hasSearched && (
+          <div className="mb-4">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              <span className="font-medium">{filteredAccounts.length}</span> conta{filteredAccounts.length !== 1 ? 's' : ''} encontrada{filteredAccounts.length !== 1 ? 's' : ''}
             </div>
           </div>
-          
-          {selectedFacebookId && hasSearched && (
-            <div className="mt-4 flex items-center justify-between">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">{filteredAccounts.length}</span> conta{filteredAccounts.length !== 1 ? 's' : ''} encontrada{filteredAccounts.length !== 1 ? 's' : ''}
-              </div>
-            </div>
-          )}
-        </div>
+        )}
 
         {/* Integrações Ativas */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 min-h-[200px]">
