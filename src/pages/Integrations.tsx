@@ -24,7 +24,10 @@ import {
   Trash2,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Search,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { FacebookOAuthService, getAllFacebookUsers, getUserAdAccountsFromBackend, FacebookUser, FacebookAccount } from '@/services/oauth';
 import { useToast } from '@/hooks/use-toast';
@@ -103,6 +106,10 @@ const Integrations = () => {
   const [selectedFacebookId, setSelectedFacebookId] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<FacebookAccount[]>([]);
   const [loading, setLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const accountsPerPage = 5;
 
   const getStatusIcon = (status: Integration['status']) => {
     switch (status) {
@@ -151,16 +158,13 @@ const Integrations = () => {
     fetchUsers();
   }, []);
 
-  // Carrega contas quando um usuário específico é selecionado
+  // Reset state when user changes
   useEffect(() => {
     if (selectedFacebookId) {
-      setLoading(true);
-      getUserAdAccountsFromBackend(selectedFacebookId)
-        .then(setAccounts)
-        .catch(() => setAccounts([]))
-        .finally(() => setLoading(false));
-    } else {
       setAccounts([]);
+      setHasSearched(false);
+      setSearchTerm('');
+      setCurrentPage(1);
     }
   }, [selectedFacebookId]);
 
@@ -456,6 +460,47 @@ const Integrations = () => {
     }
   };
 
+  // Função para buscar contas
+  const handleSearchAccounts = async () => {
+    if (!selectedFacebookId) return;
+    
+    setLoading(true);
+    setHasSearched(true);
+    try {
+      const data = await getUserAdAccountsFromBackend(selectedFacebookId);
+      setAccounts(data);
+      setCurrentPage(1);
+    } catch (error) {
+      console.error('Erro ao buscar contas:', error);
+      setAccounts([]);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as contas do usuário.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filtrar contas por nome
+  const filteredAccounts = accounts.filter(account => 
+    (account.name || account.nome_conta || '').toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Lógica de paginação
+  const totalPages = Math.ceil(filteredAccounts.length / accountsPerPage);
+  const startIndex = (currentPage - 1) * accountsPerPage;
+  const paginatedAccounts = filteredAccounts.slice(startIndex, startIndex + accountsPerPage);
+
+  const handlePreviousPage = () => {
+    setCurrentPage(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleNextPage = () => {
+    setCurrentPage(prev => Math.min(prev + 1, totalPages));
+  };
+
   return (
     <ProductLayout title="Integrações de API">
       <div className="space-y-6">
@@ -531,46 +576,110 @@ const Integrations = () => {
           </div>
         </div>
 
+        {/* Search Controls */}
+        {selectedFacebookId && (
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <Button 
+              onClick={handleSearchAccounts}
+              disabled={loading}
+              className="flex items-center space-x-2"
+            >
+              <Search className="h-4 w-4" />
+              <span>{loading ? 'Buscando...' : 'Buscar Contas'}</span>
+            </Button>
+            
+            {hasSearched && accounts.length > 0 && (
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="font-medium">{accounts.length}</span> conta{accounts.length !== 1 ? 's' : ''} encontrada{accounts.length !== 1 ? 's' : ''}
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Search className="h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Buscar por nome da conta..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1); // Reset to first page when searching
+                    }}
+                    className="w-64"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Integrações Ativas */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 min-h-[200px]">
-            {loading && (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600 dark:text-gray-400">Carregando contas...</p>
+          {loading && (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-400">Carregando contas...</p>
+            </div>
+          )}
+          
+          {!loading && selectedFacebookId && !hasSearched && (
+            <div className="text-center py-8">
+              <div className="text-gray-400 mb-4">
+                <Search className="h-12 w-12 mx-auto" />
               </div>
-            )}
-            
-            {!loading && selectedFacebookId && accounts.length === 0 && (
-              <div className="text-center py-8">
-                <div className="text-gray-400 mb-4">
-                  <Settings className="h-12 w-12 mx-auto" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  Nenhuma conta encontrada
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Este usuário não possui contas conectadas.
-                </p>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                Pronto para buscar
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400">
+                Clique no botão "Buscar Contas" para carregar as integrações deste usuário.
+              </p>
+            </div>
+          )}
+          
+          {!loading && selectedFacebookId && hasSearched && accounts.length === 0 && (
+            <div className="text-center py-8">
+              <div className="text-gray-400 mb-4">
+                <Settings className="h-12 w-12 mx-auto" />
               </div>
-            )}
-            
-            {!loading && !selectedFacebookId && (
-              <div className="text-center py-8">
-                <div className="text-gray-400 mb-4">
-                  <Settings className="h-12 w-12 mx-auto" />
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  Selecione um usuário
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  Escolha um usuário acima para visualizar suas integrações ativas.
-                </p>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                Nenhuma conta encontrada
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400">
+                Este usuário não possui contas conectadas.
+              </p>
+            </div>
+          )}
+          
+          {!loading && !selectedFacebookId && (
+            <div className="text-center py-8">
+              <div className="text-gray-400 mb-4">
+                <Settings className="h-12 w-12 mx-auto" />
               </div>
-            )}
-            
-            {!loading && accounts.length > 0 && (
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                Selecione um usuário
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400">
+                Escolha um usuário acima para visualizar suas integrações ativas.
+              </p>
+            </div>
+          )}
+          
+          {!loading && hasSearched && filteredAccounts.length === 0 && searchTerm && (
+            <div className="text-center py-8">
+              <div className="text-gray-400 mb-4">
+                <Search className="h-12 w-12 mx-auto" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                Nenhum resultado encontrado
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400">
+                Nenhuma conta encontrada com o termo "{searchTerm}".
+              </p>
+            </div>
+          )}
+          
+          {!loading && paginatedAccounts.length > 0 && (
+            <>
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                {accounts.map((conta) => {
+                {paginatedAccounts.map((conta) => {
                   const integrationType = integrationTypes.find(t => t.type === 'facebook');
                   const Icon = integrationType?.icon || Settings;
                   
@@ -622,8 +731,48 @@ const Integrations = () => {
                   );
                 })}
               </div>
-            )}
-          </div>
+              
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Mostrando {startIndex + 1} a {Math.min(startIndex + accountsPerPage, filteredAccounts.length)} de {filteredAccounts.length} contas
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePreviousPage}
+                      disabled={currentPage === 1}
+                      className="flex items-center space-x-1"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      <span>Anterior</span>
+                    </Button>
+                    
+                    <div className="flex items-center space-x-1">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Página {currentPage} de {totalPages}
+                      </span>
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNextPage}
+                      disabled={currentPage === totalPages}
+                      className="flex items-center space-x-1"
+                    >
+                      <span>Próxima</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         {/* OAuth Integration Dialog */}
         <Dialog open={isOAuthDialogOpen} onOpenChange={setIsOAuthDialogOpen}>
