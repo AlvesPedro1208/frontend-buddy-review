@@ -13,6 +13,7 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { ProductLayout } from '@/components/ProductLayout';
 import { useToast } from "@/components/ui/use-toast";
 import { getContas, ContaAPI } from '@/services/integrations';
+import { getAllFacebookUsers } from '@/services/oauth';
 
 interface MetaAdsData {
   campaign_name: string;
@@ -55,13 +56,9 @@ const MetaDados = () => {
   useEffect(() => {
     const carregarDadosIniciais = async () => {
       try {
-        // Mock de usuários - substitua pela sua API real
-        const usuariosData: Usuario[] = [
-          { id: 1, nome: "João Silva" },
-          { id: 2, nome: "Maria Santos" },
-          { id: 3, nome: "Pedro Costa" }
-        ];
-
+        // Buscar usuários reais do OAuth
+        const usuariosData = await getAllFacebookUsers();
+        
         // Buscar contas do banco usando o serviço existente
         const contasData = await getContas();
         
@@ -70,12 +67,18 @@ const MetaDados = () => {
           ["Meta Ads", "Facebook Ads"].includes(c.plataforma) && c.ativo
         );
 
-        setUsuarios(usuariosData);
+        // Mapear usuários do Facebook para o formato esperado
+        const usuariosMapeados: Usuario[] = usuariosData.map(user => ({
+          id: parseInt(user.facebook_id),
+          nome: user.username
+        }));
+
+        setUsuarios(usuariosMapeados);
         setContas(contasMeta);
 
         // Seleciona automaticamente o primeiro usuário e conta
-        if (usuariosData.length > 0) {
-          setUsuarioSelecionado(usuariosData[0].id.toString());
+        if (usuariosMapeados.length > 0) {
+          setUsuarioSelecionado(usuariosMapeados[0].id.toString());
         }
         if (contasMeta.length > 0) {
           setContaSelecionada(contasMeta[0].identificador_conta);

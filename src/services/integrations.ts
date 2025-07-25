@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 const API_BASE_URL = 'http://localhost:8000';
 
 export interface ContaAPI {
@@ -15,8 +13,10 @@ export interface ContaAPI {
 
 export const getContas = async (): Promise<ContaAPI[]> => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/contas`);
-    return response.data;
+    const response = await fetch(`${API_BASE_URL}/contas`);
+    if (!response.ok) throw new Error('Network response was not ok');
+    const data = await response.json();
+    return data;
   } catch (error) {
     console.warn('Backend não disponível, usando dados mock:', error);
     // Retorna dados mock quando a API não estiver disponível
@@ -56,13 +56,29 @@ export const getContas = async (): Promise<ContaAPI[]> => {
 };
 
 export const criarConta = async (dados: Omit<ContaAPI, 'id' | 'data_conexao'>): Promise<void> => {
-  await axios.post(`${API_BASE_URL}/contas`, dados);
+  const response = await fetch(`${API_BASE_URL}/contas`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(dados),
+  });
+  
+  if (!response.ok) throw new Error('Erro ao salvar no banco');
 };
 
 export const atualizarStatusConta = async (id: number, ativo: boolean): Promise<void> => {
-  await axios.patch(`${API_BASE_URL}/contas/${id}`, { ativo });
+  await fetch(`${API_BASE_URL}/contas/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ ativo }),
+  });
 };
 
 export const deletarConta = async (id: number): Promise<void> => {
-  await axios.delete(`${API_BASE_URL}/contas/${id}`);
+  await fetch(`${API_BASE_URL}/contas/${id}`, {
+    method: 'DELETE',
+  });
 };
