@@ -513,68 +513,75 @@ const MetaDados = () => {
         {/* Tabela */}
         <Card>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
+            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
+              <Table className="min-w-full">
                 <TableHeader>
                   <TableRow>
                     <TableHead 
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 min-w-[180px]"
                       onClick={() => handleSort("campaign_name")}
                     >
                       Nome da Campanha {sortField === "campaign_name" && (sortDirection === "asc" ? "↑" : "↓")}
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 min-w-[150px]"
                       onClick={() => handleSort("adset_name")}
                     >
                       Conjunto {sortField === "adset_name" && (sortDirection === "asc" ? "↑" : "↓")}
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 min-w-[150px]"
                       onClick={() => handleSort("ad_name")}
                     >
                       Anúncio {sortField === "ad_name" && (sortDirection === "asc" ? "↑" : "↓")}
                     </TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead className="min-w-[80px]">Status</TableHead>
                     <TableHead 
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 text-right"
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 text-right min-w-[100px]"
                       onClick={() => handleSort("impressions")}
                     >
                       Impressões {sortField === "impressions" && (sortDirection === "asc" ? "↑" : "↓")}
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 text-right"
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 text-right min-w-[100px]"
                       onClick={() => handleSort("reach")}
                     >
                       Alcance {sortField === "reach" && (sortDirection === "asc" ? "↑" : "↓")}
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 text-right"
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 text-right min-w-[80px]"
                       onClick={() => handleSort("clicks")}
                     >
                       Cliques {sortField === "clicks" && (sortDirection === "asc" ? "↑" : "↓")}
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 text-right"
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 text-right min-w-[80px]"
                       onClick={() => handleSort("cpc")}
                     >
                       CPC {sortField === "cpc" && (sortDirection === "asc" ? "↑" : "↓")}
                     </TableHead>
                     <TableHead 
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 text-right"
+                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 text-right min-w-[80px]"
                       onClick={() => handleSort("spend")}
                     >
                       Gasto {sortField === "spend" && (sortDirection === "asc" ? "↑" : "↓")}
                     </TableHead>
-                    {/* Colunas dos campos opcionais selecionados */}
+                    {/* Colunas dos campos opcionais - só mostrar se existirem dados */}
                     {camposSelecionados
-                      .filter(campo => !["campaign_name", "adset_name", "ad_name", "impressions", "reach", "clicks", "cpc", "spend"].includes(campo))
+                      .filter(campo => {
+                        // Não mostrar campos já incluídos nas colunas fixas
+                        if (["campaign_name", "adset_name", "ad_name", "impressions", "reach", "clicks", "cpc", "spend", "date_start", "date_stop"].includes(campo)) {
+                          return false;
+                        }
+                        // Só mostrar se pelo menos um item tem esse campo
+                        return dados.length > 0 && dados.some(item => (item as any)[campo] !== undefined && (item as any)[campo] !== null);
+                      })
                       .map(campo => {
                         const opcao = opcoesCampos.find(o => o.value === campo);
                         return (
                           <TableHead 
                             key={campo}
-                            className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 text-right"
+                            className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 text-right min-w-[100px]"
                             onClick={() => handleSort(campo as keyof MetaAdsData)}
                           >
                             {opcao?.label} {sortField === campo && (sortDirection === "asc" ? "↑" : "↓")}
@@ -582,8 +589,8 @@ const MetaDados = () => {
                         );
                       })
                     }
-                    <TableHead>Data Início</TableHead>
-                    <TableHead>Data Fim</TableHead>
+                    <TableHead className="min-w-[100px]">Data Início</TableHead>
+                    <TableHead className="min-w-[100px]">Data Fim</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -599,9 +606,14 @@ const MetaDados = () => {
                         <TableCell className="text-right">{item.clicks?.toLocaleString() || '-'}</TableCell>
                         <TableCell className="text-right">R$ {item.cpc?.toFixed(2) || '0.00'}</TableCell>
                         <TableCell className="text-right">R$ {item.spend?.toFixed(2) || '0.00'}</TableCell>
-                        {/* Células dos campos opcionais selecionados */}
+                        {/* Células dos campos opcionais - só se existirem dados */}
                         {camposSelecionados
-                          .filter(campo => !["campaign_name", "adset_name", "ad_name", "impressions", "reach", "clicks", "cpc", "spend"].includes(campo))
+                          .filter(campo => {
+                            if (["campaign_name", "adset_name", "ad_name", "impressions", "reach", "clicks", "cpc", "spend", "date_start", "date_stop"].includes(campo)) {
+                              return false;
+                            }
+                            return dados.length > 0 && dados.some(item => (item as any)[campo] !== undefined && (item as any)[campo] !== null);
+                          })
                           .map(campo => {
                             const valor = (item as any)[campo];
                             let valorFormatado = '-';
@@ -633,7 +645,7 @@ const MetaDados = () => {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={11 + camposSelecionados.filter(campo => !["campaign_name", "adset_name", "ad_name", "impressions", "reach", "clicks", "cpc", "spend"].includes(campo)).length} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={100} className="text-center py-8 text-gray-500">
                         Nenhum dado encontrado. Clique em "Obter Dados" para importar.
                       </TableCell>
                     </TableRow>
