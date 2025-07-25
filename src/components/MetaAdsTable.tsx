@@ -77,83 +77,94 @@ const MetaAdsTable = ({
     <div className="relative w-full h-[600px] border rounded-md bg-white dark:bg-gray-900 flex flex-col">
       {/* Container principal com scroll vertical apenas */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden">
-        <div className="overflow-hidden">
-          <Table className="w-full" style={{ minWidth: 'max-content' }}>
-            <TableHeader className="sticky top-0 bg-background z-10">
-              <TableRow>
-                {camposSelecionados.map(campo => {
-                  const opcao = opcoesCampos.find(o => o.value === campo);
-                  return (
-                    <TableHead 
-                      key={campo}
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 w-[150px] min-w-[150px]"
-                      onClick={() => onSort(campo as keyof MetaAdsData)}
-                    >
-                      {opcao?.label || campo} {sortField === campo && (sortDirection === "asc" ? "↑" : "↓")}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {currentData.length > 0 ? (
-                currentData.map((item, index) => (
-                  <TableRow key={index}>
-                    {camposSelecionados.map(campo => {
-                      const valor = (item as any)[campo];
-                      let valorFormatado = '-';
-                      
-                      if (valor !== undefined && valor !== null) {
-                        if (campo === 'status') {
-                          return (
-                            <TableCell key={campo}>
-                              {getStatusBadge(valor)}
-                            </TableCell>
-                          );
-                        } else if (typeof valor === 'number') {
-                          if (campo === 'ctr' || campo === 'frequency') {
-                            valorFormatado = valor.toFixed(2) + '%';
-                          } else if (campo === 'cpm' || campo === 'cpc') {
-                            valorFormatado = 'R$ ' + valor.toFixed(2);
-                          } else if (campo === 'spend') {
-                            valorFormatado = 'R$ ' + valor.toFixed(2);
-                          } else {
-                            valorFormatado = valor.toLocaleString();
-                          }
-                        } else if (campo === 'date_start' || campo === 'date_stop') {
-                          valorFormatado = format(new Date(valor), "dd/MM/yyyy");
-                        } else {
-                          valorFormatado = String(valor);
-                        }
-                      }
-                      
-                      return (
-                        <TableCell key={campo} className={typeof valor === 'number' && campo !== 'status' ? "text-right" : ""}>
-                          {valorFormatado}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                ))
-              ) : (
+        <div 
+          ref={tableRef}
+          className="overflow-x-auto"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          onScroll={(e) => {
+            if (scrollRef.current) {
+              scrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
+            }
+          }}
+        >
+          <div className="overflow-hidden">
+            <Table className="w-full" style={{ minWidth: 'max-content' }}>
+              <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
-                  <TableCell colSpan={camposSelecionados.length} className="text-center py-8 text-gray-500">
-                    Nenhum dado encontrado. Clique em "Obter Dados" para importar.
-                  </TableCell>
+                  {camposSelecionados.map(campo => {
+                    const opcao = opcoesCampos.find(o => o.value === campo);
+                    return (
+                      <TableHead 
+                        key={campo}
+                        className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 w-[150px] min-w-[150px]"
+                        onClick={() => onSort(campo as keyof MetaAdsData)}
+                      >
+                        {opcao?.label || campo} {sortField === campo && (sortDirection === "asc" ? "↑" : "↓")}
+                      </TableHead>
+                    );
+                  })}
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {currentData.length > 0 ? (
+                  currentData.map((item, index) => (
+                    <TableRow key={index}>
+                      {camposSelecionados.map(campo => {
+                        const valor = (item as any)[campo];
+                        let valorFormatado = '-';
+                        
+                        if (valor !== undefined && valor !== null) {
+                          if (campo === 'status') {
+                            return (
+                              <TableCell key={campo}>
+                                {getStatusBadge(valor)}
+                              </TableCell>
+                            );
+                          } else if (typeof valor === 'number') {
+                            if (campo === 'ctr' || campo === 'frequency') {
+                              valorFormatado = valor.toFixed(2) + '%';
+                            } else if (campo === 'cpm' || campo === 'cpc') {
+                              valorFormatado = 'R$ ' + valor.toFixed(2);
+                            } else if (campo === 'spend') {
+                              valorFormatado = 'R$ ' + valor.toFixed(2);
+                            } else {
+                              valorFormatado = valor.toLocaleString();
+                            }
+                          } else if (campo === 'date_start' || campo === 'date_stop') {
+                            valorFormatado = format(new Date(valor), "dd/MM/yyyy");
+                          } else {
+                            valorFormatado = String(valor);
+                          }
+                        }
+                        
+                        return (
+                          <TableCell key={campo} className={typeof valor === 'number' && campo !== 'status' ? "text-right" : ""}>
+                            {valorFormatado}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={camposSelecionados.length} className="text-center py-8 text-gray-500">
+                      Nenhum dado encontrado. Clique em "Obter Dados" para importar.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
       
       {/* Container separado para scroll horizontal */}
       <div 
+        ref={scrollRef}
         className="overflow-x-auto overflow-y-hidden h-4 border-t bg-gray-50 dark:bg-gray-800"
         onScroll={(e) => {
-          const tableContainer = document.querySelector('.table-scroll-container');
-          if (tableContainer) {
-            tableContainer.scrollLeft = e.currentTarget.scrollLeft;
+          if (tableRef.current) {
+            tableRef.current.scrollLeft = e.currentTarget.scrollLeft;
           }
         }}
       >
