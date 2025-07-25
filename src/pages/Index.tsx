@@ -1,11 +1,13 @@
-import { ArrowRight, Star, Check, Globe, Zap, Shield, Sun, Moon } from 'lucide-react';
+import { ArrowRight, Star, Check, Globe, Zap, Shield, Sun, Moon, LogIn, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'react-router-dom';
 import { useDarkMode } from '@/hooks/useDarkMode';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
+  const { isAuthenticated } = useAuth();
 
   const features = [
     {
@@ -74,11 +76,28 @@ const Index = () => {
                 <Moon className="h-4 w-4" />
               )}
             </Button>
-            <Link to="/product">
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                Acessar Produto
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <Link to="/product">
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  Acessar Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <div className="flex space-x-2">
+                <Link to="/login">
+                  <Button variant="outline" size="sm">
+                    <LogIn className="h-4 w-4 mr-2" />
+                    Entrar
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Cadastrar
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -95,15 +114,29 @@ const Index = () => {
               Tecnologia de ponta para resultados extraordinários.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link to="/product">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-6 hover-scale">
-                  Experimente Gratuitamente
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-6 hover-scale border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-300">
-                Ver Demonstração
-              </Button>
+              {isAuthenticated ? (
+                <Link to="/product">
+                  <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-6 hover-scale">
+                    Acessar Dashboard
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              ) : (
+                <>
+                  <Link to="/register">
+                    <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-6 hover-scale">
+                      Experimente Gratuitamente
+                      <UserPlus className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                  <Link to="/login">
+                    <Button variant="outline" size="lg" className="text-lg px-8 py-6 hover-scale border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-300">
+                      <LogIn className="mr-2 h-5 w-5" />
+                      Já tenho conta
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -240,12 +273,21 @@ const Index = () => {
           <p className="text-xl text-blue-100 dark:text-blue-200 mb-8 max-w-2xl mx-auto transition-colors duration-300">
             Junte-se a milhões de usuários que já transformaram seus negócios.
           </p>
-          <Link to="/product">
-            <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-6 hover-scale">
-              Começar Gratuitamente
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
-          </Link>
+          {isAuthenticated ? (
+            <Link to="/product">
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-6 hover-scale">
+                Acessar Dashboard
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          ) : (
+            <Link to="/register">
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-6 hover-scale">
+                Começar Gratuitamente
+                <UserPlus className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          )}
         </div>
       </section>
 
