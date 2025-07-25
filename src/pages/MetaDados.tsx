@@ -453,7 +453,7 @@ const MetaDados = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => setCamposSelecionados([])}
+                            onClick={() => setCamposSelecionados(camposObrigatorios)}
                             className="flex-1"
                           >
                             Limpar Todos
