@@ -13,32 +13,11 @@ import {
 } from '@/components/ui/dialog';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
-import { ResizableCard } from '@/components/ResizableCard';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
+import { DashboardGrid } from '@/components/DashboardGrid';
+import { useDashboardLayout, DashboardItem } from '@/hooks/useDashboardLayout';
 import { 
   Send, 
   Upload, 
-  TrendingUp, 
-  Users, 
-  Eye, 
-  Clock,
-  MessageCircle,
-  BarChart3,
-  PieChart as PieChartIcon,
-  LineChart as LineChartIcon,
   FileUp,
   Link,
   X,
@@ -50,19 +29,6 @@ import {
 } from 'lucide-react';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { useNavigate } from 'react-router-dom';
-
-interface DynamicChart {
-  id: string;
-  type: 'bar' | 'line' | 'pie';
-  title: string;
-  data: any[];
-  config?: {
-    xKey?: string;
-    yKey?: string;
-    colors?: string[];
-    dataKey?: string;
-  };
-}
 
 const Product = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
@@ -81,34 +47,9 @@ const Product = () => {
   const [selectedFacebookUser, setSelectedFacebookUser] = useState('');
   const [selectedAdAccount, setSelectedAdAccount] = useState('');
   const [lastUploadedSheet, setLastUploadedSheet] = useState<{ url?: string; file?: File | null }>({});
-
   const [isAiLoading, setIsAiLoading] = useState(false);
 
-  const [dynamicCharts, setDynamicCharts] = useState<DynamicChart[]>([]);
-
-  // Mock data for Facebook users and ad accounts
-  const facebookUsers = [
-    { id: 'user1', name: 'João Silva (joao@empresa.com)' },
-    { id: 'user2', name: 'Maria Santos (maria@marketing.com)' },
-    { id: 'user3', name: 'Pedro Costa (pedro@agencia.com)' }
-  ];
-
-  const adAccountsByUser = {
-    'user1': [
-      { id: 'act_123456789', name: 'Loja Virtual - Vendas Online' },
-      { id: 'act_123456790', name: 'Campanha Black Friday' }
-    ],
-    'user2': [
-      { id: 'act_987654321', name: 'Marketing Digital - Leads' },
-      { id: 'act_987654322', name: 'Branding - Awareness' }
-    ],
-    'user3': [
-      { id: 'act_555444333', name: 'Agência - Cliente A' },
-      { id: 'act_555444334', name: 'Agência - Cliente B' },
-      { id: 'act_555444335', name: 'Agência - Cliente C' }
-    ]
-  };
-
+  // Mock data
   const salesData = [
     { month: 'Jan', sales: 89500, visitors: 24700 },
     { month: 'Fev', sales: 67200, visitors: 18900 },
@@ -133,6 +74,86 @@ const Product = () => {
     { day: 13, visitors: 120 }, { day: 14, visitors: 200 }, { day: 15, visitors: 180 }
   ];
 
+  // Mock data for Facebook users and ad accounts
+  const facebookUsers = [
+    { id: 'user1', name: 'João Silva (joao@empresa.com)' },
+    { id: 'user2', name: 'Maria Santos (maria@marketing.com)' },
+    { id: 'user3', name: 'Pedro Costa (pedro@agencia.com)' }
+  ];
+
+  const adAccountsByUser = {
+    'user1': [
+      { id: 'act_123456789', name: 'Loja Virtual - Vendas Online' },
+      { id: 'act_123456790', name: 'Campanha Black Friday' }
+    ],
+    'user2': [
+      { id: 'act_987654321', name: 'Marketing Digital - Leads' },
+      { id: 'act_987654322', name: 'Branding - Awareness' }
+    ],
+    'user3': [
+      { id: 'act_555444333', name: 'Agência - Cliente A' },
+      { id: 'act_555444334', name: 'Agência - Cliente B' },
+      { id: 'act_555444335', name: 'Agência - Cliente C' }
+    ]
+  };
+
+  // Initialize dashboard with default items
+  const initialDashboardItems: DashboardItem[] = [
+    {
+      id: 'metric-1',
+      type: 'metric',
+      title: 'Visitantes Únicos',
+      layout: { x: 0, y: 0, w: 3, h: 2 }
+    },
+    {
+      id: 'metric-2',
+      type: 'metric',
+      title: 'Total Pageviews',
+      layout: { x: 3, y: 0, w: 3, h: 2 }
+    },
+    {
+      id: 'metric-3',
+      type: 'metric',
+      title: 'Taxa de Rejeição',
+      layout: { x: 6, y: 0, w: 3, h: 2 }
+    },
+    {
+      id: 'metric-4',
+      type: 'metric',
+      title: 'Duração da Visita',
+      layout: { x: 9, y: 0, w: 3, h: 2 }
+    },
+    {
+      id: 'sales-chart',
+      type: 'chart',
+      chartType: 'bar',
+      title: 'Vendas por Mês',
+      data: salesData,
+      config: { xKey: 'month', yKey: 'sales' },
+      layout: { x: 0, y: 2, w: 6, h: 4 }
+    },
+    {
+      id: 'traffic-chart',
+      type: 'chart',
+      chartType: 'pie',
+      title: 'Fontes de Tráfego',
+      data: trafficData,
+      config: { dataKey: 'value' },
+      layout: { x: 6, y: 2, w: 6, h: 4 }
+    },
+    {
+      id: 'daily-visitors-chart',
+      type: 'chart',
+      chartType: 'line',
+      title: 'Visitantes Diários - Últimos 15 dias',
+      data: dailyVisitors,
+      config: { xKey: 'day', yKey: 'visitors' },
+      layout: { x: 0, y: 6, w: 12, h: 4 }
+    }
+  ];
+
+  const { items: dashboardItems, addItem, removeItem, updateLayouts } = useDashboardLayout(initialDashboardItems);
+
   const isChartRequest = (pergunta: string): boolean => {
     const chartKeywords = [
       'gráfico', 'grafico', 'chart', 'visualização', 'visualizacao',
@@ -143,10 +164,6 @@ const Product = () => {
     return chartKeywords.some(keyword => 
       pergunta.toLowerCase().includes(keyword.toLowerCase())
     );
-  };
-
-  const removeChart = (chartId: string) => {
-    setDynamicCharts(prev => prev.filter(chart => chart.id !== chartId));
   };
 
   const sendMessage = async () => {
@@ -192,15 +209,17 @@ const Product = () => {
       const chartConfig = await response.json();
 
       if (chartConfig && chartConfig.type) {
-        const newChart: DynamicChart = {
+        const newChart: DashboardItem = {
           id: `chart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          type: chartConfig.type,
+          type: 'chart',
+          chartType: chartConfig.type,
           title: chartConfig.title || 'Gráfico Gerado',
           data: chartConfig.data || [],
-          config: chartConfig.config
+          config: chartConfig.config,
+          layout: { x: 0, y: 0, w: 6, h: 4 }
         };
 
-        setDynamicCharts(prev => [...prev, newChart]);
+        addItem(newChart);
         setChatMessages(prev => [...prev, {
           type: 'ai',
           content: `📊 Gráfico "${newChart.title}" foi adicionado à dashboard!`
@@ -331,72 +350,6 @@ const Product = () => {
     `;
   }
 
-  const renderDynamicChart = (chart: DynamicChart) => {
-    const colors = chart.config?.colors || ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#06B6D4'];
-    
-    switch (chart.type) {
-      case 'bar':
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chart.data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey={chart.config?.xKey || 'name'} />
-              <YAxis />
-              <Tooltip />
-              <Bar 
-                dataKey={chart.config?.yKey || 'value'} 
-                fill={colors[0]} 
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        );
-      
-      case 'line':
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chart.data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey={chart.config?.xKey || 'name'} />
-              <YAxis />
-              <Tooltip />
-              <Line 
-                type="monotone" 
-                dataKey={chart.config?.yKey || 'value'} 
-                stroke={colors[0]} 
-                strokeWidth={3}
-                dot={{ fill: colors[0], strokeWidth: 2, r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        );
-      
-      case 'pie':
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={chart.data}
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                dataKey={chart.config?.dataKey || 'value'}
-                label={({ name, value }) => `${name}: ${value}`}
-              >
-                {chart.data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        );
-      
-      default:
-        return <div>Tipo de gráfico não suportado</div>;
-    }
-  };
-
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-slate-50 dark:bg-gray-900 transition-colors">
@@ -450,434 +403,227 @@ const Product = () => {
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-md dark:bg-gray-800 dark:border-gray-700">
-                <DialogHeader>
-                  <DialogTitle className="dark:text-white">Carregar Nova Planilha</DialogTitle>
-                  <DialogDescription className="dark:text-gray-300">
-                    Escolha como você gostaria de adicionar sua planilha para análise.
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <div className="space-y-4">
-                  {/* Toggle between file, URL and API */}
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button
-                      variant={uploadType === 'file' ? 'default' : 'outline'}
-                      onClick={() => setUploadType('file')}
-                      className="flex-1"
-                    >
-                      <FileUp className="w-4 h-4 mr-2" />
-                      Arquivo Local
-                    </Button>
-                    <Button
-                      variant={uploadType === 'url' ? 'default' : 'outline'}
-                      onClick={() => setUploadType('url')}
-                      className="flex-1"
-                    >
-                      <Link className="w-4 h-4 mr-2" />
-                      Link/URL
-                    </Button>
-                    <Button
-                      variant={uploadType === 'api' ? 'default' : 'outline'}
-                      onClick={() => setUploadType('api')}
-                      className="flex-1"
-                    >
-                      <Plug className="w-4 h-4 mr-2" />
-                      API
-                    </Button>
-                  </div>
+                    <DialogHeader>
+                      <DialogTitle className="dark:text-white">Carregar Nova Planilha</DialogTitle>
+                      <DialogDescription className="dark:text-gray-300">
+                        Escolha como você gostaria de adicionar sua planilha para análise.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-4">
+                      {/* Toggle between file, URL and API */}
+                      <div className="grid grid-cols-3 gap-2">
+                        <Button
+                          variant={uploadType === 'file' ? 'default' : 'outline'}
+                          onClick={() => setUploadType('file')}
+                          className="flex-1"
+                        >
+                          <FileUp className="w-4 h-4 mr-2" />
+                          Arquivo Local
+                        </Button>
+                        <Button
+                          variant={uploadType === 'url' ? 'default' : 'outline'}
+                          onClick={() => setUploadType('url')}
+                          className="flex-1"
+                        >
+                          <Link className="w-4 h-4 mr-2" />
+                          Link/URL
+                        </Button>
+                        <Button
+                          variant={uploadType === 'api' ? 'default' : 'outline'}
+                          onClick={() => setUploadType('api')}
+                          className="flex-1"
+                        >
+                          <Plug className="w-4 h-4 mr-2" />
+                          API
+                        </Button>
+                      </div>
 
-                  {/* File upload */}
-                  {uploadType === 'file' && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium dark:text-gray-200">Selecionar arquivo</label>
-                      <Input
-                        type="file"
-                        accept=".xlsx,.xls,.csv"
-                        onChange={handleFileUpload}
-                        className="cursor-pointer dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                      />
-                      {selectedFile && (
-                        <p className="text-sm text-green-600 dark:text-green-400">
-                          Arquivo selecionado: {selectedFile.name}
-                        </p>
+                      {/* File upload */}
+                      {uploadType === 'file' && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium dark:text-gray-200">Selecionar arquivo</label>
+                          <Input
+                            type="file"
+                            accept=".xlsx,.xls,.csv"
+                            onChange={handleFileUpload}
+                            className="dark:bg-gray-700 dark:border-gray-600"
+                          />
+                          {selectedFile && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              Arquivo selecionado: {selectedFile.name}
+                            </p>
+                          )}
+                        </div>
                       )}
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Formatos aceitos: .xlsx, .xls, .csv
-                      </p>
-                    </div>
-                  )}
 
-                  {/* URL upload */}
-                  {uploadType === 'url' && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium dark:text-gray-200">Link da planilha</label>
-                      <Input
-                        type="url"
-                        placeholder="https://docs.google.com/spreadsheets/..."
-                        value={spreadsheetUrl}
-                        onChange={(e) => setSpreadsheetUrl(e.target.value)}
-                        className="dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                      />
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Cole o link da sua planilha do Google Sheets ou Excel Online
-                      </p>
-                    </div>
-                  )}
+                      {/* URL input */}
+                      {uploadType === 'url' && (
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium dark:text-gray-200">URL do Google Sheets</label>
+                          <Input
+                            type="url"
+                            placeholder="https://docs.google.com/spreadsheets/d/..."
+                            value={spreadsheetUrl}
+                            onChange={(e) => setSpreadsheetUrl(e.target.value)}
+                            className="dark:bg-gray-700 dark:border-gray-600"
+                          />
+                        </div>
+                      )}
 
-                  {/* API Integration */}
-                  {uploadType === 'api' && (
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium dark:text-gray-200">Selecionar Integração</label>
-                      <Select 
-                        value={selectedIntegration} 
-                        onValueChange={(value) => {
-                          setSelectedIntegration(value);
-                          // Reset subsequent selections when integration changes
-                          setSelectedFacebookUser('');
-                          setSelectedAdAccount('');
-                        }}
+                      {/* API integrations */}
+                      {uploadType === 'api' && (
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium dark:text-gray-200">Selecionar Integração</label>
+                            <Select value={selectedIntegration} onValueChange={setSelectedIntegration}>
+                              <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600">
+                                <SelectValue placeholder="Escolha uma integração" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="facebook-ads-1">Meta Ads (Facebook/Instagram)</SelectItem>
+                                <SelectItem value="google-ads-1">Google Ads</SelectItem>
+                                <SelectItem value="google-analytics-1">Google Analytics</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {selectedIntegration === 'facebook-ads-1' && (
+                            <>
+                              <div className="space-y-2">
+                                <label className="text-sm font-medium dark:text-gray-200">Usuário Facebook</label>
+                                <Select value={selectedFacebookUser} onValueChange={setSelectedFacebookUser}>
+                                  <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600">
+                                    <SelectValue placeholder="Selecione um usuário" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {facebookUsers.map(user => (
+                                      <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+
+                              {selectedFacebookUser && (
+                                <div className="space-y-2">
+                                  <label className="text-sm font-medium dark:text-gray-200">Conta de Anúncios</label>
+                                  <Select value={selectedAdAccount} onValueChange={setSelectedAdAccount}>
+                                    <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600">
+                                      <SelectValue placeholder="Selecione uma conta" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {adAccountsByUser[selectedFacebookUser as keyof typeof adAccountsByUser]?.map(account => (
+                                        <SelectItem key={account.id} value={account.id}>{account.name}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      )}
+
+                      <Button 
+                        onClick={handleUploadSubmit}
+                        disabled={
+                          (uploadType === 'file' && !selectedFile) || 
+                          (uploadType === 'url' && !spreadsheetUrl) ||
+                          (uploadType === 'api' && !selectedIntegration) ||
+                          (uploadType === 'api' && selectedIntegration === 'facebook-ads-1' && (!selectedFacebookUser || !selectedAdAccount))
+                        }
+                        className="w-full"
                       >
-                        <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                          <SelectValue placeholder="Escolha uma integração ativa" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="facebook-ads-1">Facebook Ads - Conta Principal</SelectItem>
-                          <SelectItem value="google-ads-1">Google Ads - Campanhas 2024</SelectItem>
-                          <SelectItem value="instagram-1">Instagram Business - Perfil Principal</SelectItem>
-                        </SelectContent>
-                      </Select>
-
-                      {/* Facebook User Selection - Only show when Facebook Ads is selected */}
-                      {selectedIntegration === 'facebook-ads-1' && (
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium dark:text-gray-200">Selecionar Usuário Logado</label>
-                          <Select 
-                            value={selectedFacebookUser} 
-                            onValueChange={(value) => {
-                              setSelectedFacebookUser(value);
-                              // Reset ad account selection when user changes
-                              setSelectedAdAccount('');
-                            }}
-                          >
-                            <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                              <SelectValue placeholder="Escolha o usuário logado" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {facebookUsers.map((user) => (
-                                <SelectItem key={user.id} value={user.id}>
-                                  {user.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-
-                      {/* Ad Account Selection - Only show when Facebook user is selected */}
-                      {selectedIntegration === 'facebook-ads-1' && selectedFacebookUser && (
-                        <div className="space-y-2">
-                          <label className="text-sm font-medium dark:text-gray-200">Selecionar Conta de Ads</label>
-                          <Select 
-                            value={selectedAdAccount} 
-                            onValueChange={setSelectedAdAccount}
-                          >
-                            <SelectTrigger className="dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                              <SelectValue placeholder="Escolha a conta de ads" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {adAccountsByUser[selectedFacebookUser as keyof typeof adAccountsByUser]?.map((account) => (
-                                <SelectItem key={account.id} value={account.id}>
-                                  {account.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
-
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Importe dados em tempo real das suas integrações configuradas
-                      </p>
+                        <Upload className="w-4 h-4 mr-2" />
+                        {uploadType === 'api' ? 'Importar Dados' : 'Carregar Planilha'}
+                      </Button>
                     </div>
-                  )}
-
-                  <Button 
-                    onClick={handleUploadSubmit}
-                    disabled={
-                      (uploadType === 'file' && !selectedFile) || 
-                      (uploadType === 'url' && !spreadsheetUrl) ||
-                      (uploadType === 'api' && !selectedIntegration) ||
-                      (uploadType === 'api' && selectedIntegration === 'facebook-ads-1' && (!selectedFacebookUser || !selectedAdAccount))
-                    }
-                    className="w-full"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    {uploadType === 'api' ? 'Importar Dados' : 'Carregar Planilha'}
-                  </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
-          </div>
-        </header>
+          </header>
 
           <div className="flex h-[calc(100vh-80px)]">
-        {/* Main Dashboard */}
-        <div className="flex-1 p-6 overflow-y-auto">
-          {/* Gráficos Dinâmicos da IA */}
-          {dynamicCharts.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">📊 Visualizações Geradas pela IA</h2>
-              <div className="flex flex-wrap gap-6">
-                {dynamicCharts.map((chart) => (
-                  <ResizableCard
-                    key={chart.id}
-                    id={chart.id}
-                    title={chart.title}
-                    onRemove={removeChart}
-                    initialWidth={450}
-                    initialHeight={400}
-                    minWidth={300}
-                    minHeight={250}
-                    maxWidth={800}
-                    maxHeight={600}
-                  >
-                    {renderDynamicChart(chart)}
-                  </ResizableCard>
-                ))}
+            {/* Main Dashboard */}
+            <div className="flex-1 p-6 overflow-y-auto">
+              <div className="max-w-7xl mx-auto">
+                <div className="mb-6">
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Dashboard Analytics</h1>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Arraste e redimensione os widgets para personalizar seu dashboard
+                  </p>
+                </div>
+
+                {/* Dynamic Dashboard Grid */}
+                <DashboardGrid
+                  items={dashboardItems}
+                  onLayoutChange={updateLayouts}
+                  onItemRemove={removeItem}
+                  isDarkMode={isDarkMode}
+                  isEditable={true}
+                />
               </div>
             </div>
-          )}
 
-          {/* Metrics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">Visitantes Únicos</CardTitle>
-                <Users className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold dark:text-white">24.7K</div>
-                <p className="text-xs text-green-600 dark:text-green-400 flex items-center mt-1">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +20% vs mês anterior
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Pageviews</CardTitle>
-                <Eye className="h-4 w-4 text-purple-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold dark:text-white">55.9K</div>
-                <p className="text-xs text-green-600 dark:text-green-400 flex items-center mt-1">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +4% vs mês anterior
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">Taxa de Rejeição</CardTitle>
-                <BarChart3 className="h-4 w-4 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold dark:text-white">54%</div>
-                <p className="text-xs text-red-600 dark:text-red-400 flex items-center mt-1">
-                  -1.5% vs mês anterior
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">Duração da Visita</CardTitle>
-                <Clock className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold dark:text-white">2m 56s</div>
-                <p className="text-xs text-green-600 dark:text-green-400 flex items-center mt-1">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +7% vs mês anterior
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Charts Grid */}
-          <div className="flex flex-wrap gap-6 mb-8">
-            {/* Sales Chart */}
-            <ResizableCard
-              id="sales-chart"
-              title="Vendas por Mês"
-              initialWidth={500}
-              initialHeight={400}
-              minWidth={350}
-              minHeight={300}
-              maxWidth={700}
-              maxHeight={500}
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={salesData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                  <XAxis dataKey="month" tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
-                  <YAxis tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
-                  <Tooltip 
-                    formatter={(value) => [`R$ ${value.toLocaleString()}`, 'Vendas']} 
-                    contentStyle={{
-                      backgroundColor: isDarkMode ? '#374151' : '#ffffff',
-                      border: `1px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`,
-                      borderRadius: '8px',
-                      color: isDarkMode ? '#f9fafb' : '#111827'
-                    }}
-                  />
-                  <Bar dataKey="sales" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </ResizableCard>
-
-            {/* Traffic Sources */}
-            <ResizableCard
-              id="traffic-chart"
-              title="Fontes de Tráfego"
-              initialWidth={500}
-              initialHeight={400}
-              minWidth={350}
-              minHeight={300}
-              maxWidth={700}
-              maxHeight={500}
-            >
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={trafficData}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    dataKey="value"
-                    label={({ name, value }) => `${name}: ${value}`}
-                  >
-                    {trafficData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: isDarkMode ? '#374151' : '#ffffff',
-                      border: `1px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`,
-                      borderRadius: '8px',
-                      color: isDarkMode ? '#f9fafb' : '#111827'
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </ResizableCard>
-          </div>
-
-          {/* Daily Visitors Chart */}
-          <ResizableCard
-            id="daily-visitors-chart"
-            title="Visitantes Diários - Últimos 15 dias"
-            initialWidth={600}
-            initialHeight={400}
-            minWidth={400}
-            minHeight={300}
-            maxWidth={900}
-            maxHeight={500}
-            className="mb-8"
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={dailyVisitors}>
-                <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                <XAxis dataKey="day" tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
-                <YAxis tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
-                <Tooltip 
-                  formatter={(value) => [value, 'Visitantes']} 
-                  contentStyle={{
-                    backgroundColor: isDarkMode ? '#374151' : '#ffffff',
-                    border: `1px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`,
-                    borderRadius: '8px',
-                    color: isDarkMode ? '#f9fafb' : '#111827'
-                  }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="visitors" 
-                  stroke="#10B981" 
-                  strokeWidth={3}
-                  dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ResizableCard>
-        </div>
-
-        {/* AI Chat Sidebar */}
-        <div className="w-[600px] bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col transition-colors">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="font-semibold flex items-center dark:text-gray-200">
-              <MessageCircle className="h-5 w-5 mr-2 text-blue-600" />
-              Assistente IA
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Faça perguntas sobre seus dados e peça visualizações</p>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {chatMessages.map((msg, index) => (
-              <div
-                key={index}
-                className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
-                    msg.type === 'user'
-                      ? 'bg-blue-600 dark:bg-blue-700 text-white ml-4'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 mr-4'
-                  }`}
-                >
-                  <div
-                    className="text-sm"
-                    dangerouslySetInnerHTML={{ __html: msg.content }}
-                  />
-                </div>
+            {/* Chat Panel */}
+            <div className="w-96 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="font-semibold text-gray-900 dark:text-white">🤖 Assistente IA</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Converse com a IA para criar visualizações</p>
               </div>
-            ))}
-            {isAiLoading && (
-              <div className="flex justify-start">
-                <div className="max-w-[80%] p-3 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 mr-4">
-                  <div className="flex items-center space-x-1">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">IA analisando</span>
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {chatMessages.map((msg, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${msg.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                        msg.type === 'user'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
+                      }`}
+                      dangerouslySetInnerHTML={{ __html: msg.content }}
+                    />
+                  </div>
+                ))}
+                
+                {isAiLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white px-4 py-2 rounded-lg">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></div>
+                        <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                      </div>
                     </div>
                   </div>
+                )}
+              </div>
+              
+              <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex space-x-2">
+                  <Input
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Digite sua pergunta..."
+                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    className="flex-1 dark:bg-gray-700 dark:border-gray-600"
+                    disabled={isAiLoading}
+                  />
+                  <Button 
+                    onClick={sendMessage}
+                    disabled={!message.trim() || isAiLoading}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
-            )}
-          </div>
-
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex space-x-2">
-              <Input
-                placeholder="Ex: Crie um gráfico de barras das vendas por mês..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-                className="flex-1 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                disabled={isAiLoading}
-              />
-              <Button onClick={sendMessage} size="sm" disabled={isAiLoading}>
-                <Send className="h-4 w-4" />
-              </Button>
             </div>
           </div>
-        </div>
-        </div>
         </div>
       </div>
     </SidebarProvider>
