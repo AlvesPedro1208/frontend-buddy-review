@@ -176,8 +176,7 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({
 
     return (
       <div className="flex flex-col justify-center h-full p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</div>
+        <div className="flex items-center justify-end mb-4">
           {getMetricIcon()}
         </div>
         <div className="text-3xl font-bold dark:text-white mb-2">{getMetricValue()}</div>
