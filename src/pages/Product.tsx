@@ -14,8 +14,8 @@ import {
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { AppSidebar } from '@/components/AppSidebar';
-import ChartCard from '@/components/ChartCard';
-import DashboardChartsGrid from '@/components/DashboardChartsGrid';
+import { DashboardGrid } from '@/components/DashboardGrid';
+import { useDashboardLayout, DashboardItem } from '@/hooks/useDashboardLayout';
 import { 
   BarChart, 
   Bar, 
@@ -85,8 +85,84 @@ const Product = () => {
   const [lastUploadedSheet, setLastUploadedSheet] = useState<{ url?: string; file?: File | null }>({});
 
   const [isAiLoading, setIsAiLoading] = useState(false);
-
   const [dynamicCharts, setDynamicCharts] = useState<DynamicChart[]>([]);
+
+  // Dashboard Layout Hook
+  const { items: dashboardItems, layouts, addItem, removeItem, updateLayouts } = useDashboardLayout([
+    {
+      id: 'metric-visitors',
+      type: 'metric' as const,
+      title: 'Visitantes Únicos',
+      data: { value: '24.7K', change: 20, changeLabel: 'vs mês anterior' },
+      layout: { x: 0, y: 0, w: 3, h: 3 }
+    },
+    {
+      id: 'metric-pageviews',
+      type: 'metric' as const,
+      title: 'Total Pageviews',
+      data: { value: '55.9K', change: 4, changeLabel: 'vs mês anterior' },
+      layout: { x: 3, y: 0, w: 3, h: 3 }
+    },
+    {
+      id: 'metric-bounce',
+      type: 'metric' as const,
+      title: 'Taxa de Rejeição',
+      data: { value: '54%', change: -1.5, changeLabel: 'vs mês anterior' },
+      layout: { x: 6, y: 0, w: 3, h: 3 }
+    },
+    {
+      id: 'metric-duration',
+      type: 'metric' as const,
+      title: 'Duração da Visita',
+      data: { value: '2m 56s', change: 7, changeLabel: 'vs mês anterior' },
+      layout: { x: 9, y: 0, w: 3, h: 3 }
+    },
+    {
+      id: 'sales-chart',
+      type: 'chart' as const,
+      title: 'Vendas por Mês',
+      chartType: 'bar' as const,
+      data: [
+        { month: 'Jan', sales: 89500 },
+        { month: 'Fev', sales: 67200 },
+        { month: 'Mar', sales: 78900 },
+        { month: 'Apr', sales: 85600 },
+        { month: 'Mai', sales: 92400 },
+        { month: 'Jun', sales: 71800 }
+      ],
+      config: { xKey: 'month', yKey: 'sales' },
+      layout: { x: 0, y: 3, w: 6, h: 4 }
+    },
+    {
+      id: 'traffic-chart',
+      type: 'chart' as const,
+      title: 'Fontes de Tráfego',
+      chartType: 'pie' as const,
+      data: [
+        { name: 'Google', value: 4700 },
+        { name: 'Facebook', value: 3400 },
+        { name: 'Direct', value: 2800 },
+        { name: 'Others', value: 1900 }
+      ],
+      config: { xKey: 'name', dataKey: 'value' },
+      layout: { x: 6, y: 3, w: 6, h: 4 }
+    },
+    {
+      id: 'visitors-chart',
+      type: 'chart' as const,
+      title: 'Visitantes Diários - Últimos 15 dias',
+      chartType: 'line' as const,
+      data: [
+        { day: '1', visitors: 150 }, { day: '2', visitors: 200 }, { day: '3', visitors: 180 },
+        { day: '4', visitors: 220 }, { day: '5', visitors: 190 }, { day: '6', visitors: 250 },
+        { day: '7', visitors: 280 }, { day: '8', visitors: 100 }, { day: '9', visitors: 210 },
+        { day: '10', visitors: 400 }, { day: '11', visitors: 270 }, { day: '12', visitors: 110 },
+        { day: '13', visitors: 120 }, { day: '14', visitors: 200 }, { day: '15', visitors: 180 }
+      ],
+      config: { xKey: 'day', yKey: 'visitors' },
+      layout: { x: 0, y: 7, w: 12, h: 4 }
+    }
+  ]);
 
   // Mock data for Facebook users and ad accounts
   const facebookUsers = [
@@ -237,10 +313,22 @@ const Product = () => {
           data: chartConfig.data,
           config: chartConfig.config
         };
-        setDynamicCharts(prev => [...prev, newChart]);
+        
+        // Adiciona o gráfico da IA ao grid movível
+        const newDashboardItem: DashboardItem = {
+          id: newChart.id,
+          type: 'chart',
+          title: newChart.title,
+          chartType: newChart.type,
+          data: newChart.data,
+          config: newChart.config,
+          layout: { x: 0, y: 0, w: 6, h: 4 }
+        };
+        
+        addItem(newDashboardItem);
         setChatMessages(prev => [...prev, {
           type: 'ai',
-          content: `📊 Gráfico "${newChart.title}" foi adicionado à dashboard!`
+          content: `📊 Gráfico "${newChart.title}" foi adicionado à dashboard! Você pode movê-lo e redimensioná-lo.`
         }]);
       } else {
         setChatMessages(prev => [...prev, {
@@ -720,29 +808,15 @@ const Product = () => {
               <div className="flex h-[calc(100vh-80px)]">
             {/* Main Dashboard */}
             <div className="flex-1 p-6 overflow-y-auto">
-              {/* Gráficos Dinâmicos da IA */}
-              {dynamicCharts.length > 0 && (
-                <div className="mb-8">
-                  <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">📊 Visualizações Geradas pela IA</h2>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {dynamicCharts.map((chart) => (
-                      <ChartCard
-                        key={chart.id}
-                        id={chart.id}
-                        title={chart.title}
-                        type={chart.type}
-                        removable={true}
-                        onRemove={removeChart}
-                      >
-                        {renderDynamicChart(chart)}
-                      </ChartCard>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Dashboard Charts Grid */}
-              <DashboardChartsGrid isDarkMode={isDarkMode} />
+              {/* Dashboard Grid Movível e Redimensionável */}
+              <DashboardGrid
+                items={dashboardItems}
+                layouts={layouts}
+                onLayoutChange={updateLayouts}
+                onItemRemove={removeItem}
+                isDarkMode={isDarkMode}
+                isEditable={true}
+              />
 
             </div>
             </div>
