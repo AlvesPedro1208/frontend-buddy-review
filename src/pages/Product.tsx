@@ -14,6 +14,8 @@ import {
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { AppSidebar } from '@/components/AppSidebar';
+import ChartCard from '@/components/ChartCard';
+import DashboardChartsGrid from '@/components/DashboardChartsGrid';
 import { 
   BarChart, 
   Bar, 
@@ -724,192 +726,24 @@ const Product = () => {
                   <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">📊 Visualizações Geradas pela IA</h2>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {dynamicCharts.map((chart) => (
-                      <Card key={chart.id} className="hover:shadow-lg transition-shadow relative dark:bg-gray-800 dark:border-gray-700">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="absolute top-2 right-2 z-10 h-8 w-8 p-0 dark:hover:bg-gray-700"
-                          onClick={() => removeChart(chart.id)}
-                        >
-                          <X className="h-4 w-4 dark:text-gray-300" />
-                        </Button>
-                        <CardHeader>
-                          <CardTitle className="flex items-center text-lg dark:text-gray-200">
-                            {chart.type === 'bar' && <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />}
-                            {chart.type === 'line' && <LineChartIcon className="h-5 w-5 mr-2 text-green-600" />}
-                            {chart.type === 'pie' && <PieChartIcon className="h-5 w-5 mr-2 text-purple-600" />}
-                            {chart.title}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          {renderDynamicChart(chart)}
-                        </CardContent>
-                      </Card>
+                      <ChartCard
+                        key={chart.id}
+                        id={chart.id}
+                        title={chart.title}
+                        type={chart.type}
+                        removable={true}
+                        onRemove={removeChart}
+                      >
+                        {renderDynamicChart(chart)}
+                      </ChartCard>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Metrics Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <Card className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">Visitantes Únicos</CardTitle>
-                    <Users className="h-4 w-4 text-blue-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold dark:text-white">24.7K</div>
-                    <p className="text-xs text-green-600 dark:text-green-400 flex items-center mt-1">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      +20% vs mês anterior
-                    </p>
-                  </CardContent>
-                </Card>
+              {/* Dashboard Charts Grid */}
+              <DashboardChartsGrid isDarkMode={isDarkMode} />
 
-                <Card className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Pageviews</CardTitle>
-                    <Eye className="h-4 w-4 text-purple-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold dark:text-white">55.9K</div>
-                    <p className="text-xs text-green-600 dark:text-green-400 flex items-center mt-1">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      +4% vs mês anterior
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">Taxa de Rejeição</CardTitle>
-                    <BarChart3 className="h-4 w-4 text-red-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold dark:text-white">54%</div>
-                    <p className="text-xs text-red-600 dark:text-red-400 flex items-center mt-1">
-                      -1.5% vs mês anterior
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">Duração da Visita</CardTitle>
-                    <Clock className="h-4 w-4 text-green-600" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold dark:text-white">2m 56s</div>
-                    <p className="text-xs text-green-600 dark:text-green-400 flex items-center mt-1">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      +7% vs mês anterior
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Charts Grid */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                {/* Sales Chart */}
-                <Card className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="flex items-center dark:text-gray-200">
-                      <BarChart3 className="h-5 w-5 mr-2 text-blue-600" />
-                      Vendas por Mês
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={salesData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                        <XAxis dataKey="month" tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
-                        <YAxis tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
-                        <Tooltip 
-                          formatter={(value) => [`R$ ${value.toLocaleString()}`, 'Vendas']} 
-                          contentStyle={{
-                            backgroundColor: isDarkMode ? '#374151' : '#ffffff',
-                            border: `1px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`,
-                            borderRadius: '8px',
-                            color: isDarkMode ? '#f9fafb' : '#111827'
-                          }}
-                        />
-                        <Bar dataKey="sales" fill="#3B82F6" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-
-                {/* Traffic Sources */}
-                <Card className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="flex items-center dark:text-gray-200">
-                      <PieChartIcon className="h-5 w-5 mr-2 text-purple-600" />
-                      Fontes de Tráfego
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <PieChart>
-                        <Pie
-                          data={trafficData}
-                          cx="50%"
-                          cy="50%"
-                          outerRadius={80}
-                          dataKey="value"
-                          label={({ name, value }) => `${name}: ${value}`}
-                        >
-                          {trafficData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip 
-                          contentStyle={{
-                            backgroundColor: isDarkMode ? '#374151' : '#ffffff',
-                            border: `1px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`,
-                            borderRadius: '8px',
-                            color: isDarkMode ? '#f9fafb' : '#111827'
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Daily Visitors Chart */}
-              <Card className="hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700">
-                <CardHeader>
-                  <CardTitle className="flex items-center dark:text-gray-200">
-                    <LineChartIcon className="h-5 w-5 mr-2 text-green-600" />
-                    Visitantes Diários - Últimos 15 dias
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <LineChart data={dailyVisitors}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={isDarkMode ? '#374151' : '#e5e7eb'} />
-                      <XAxis dataKey="day" tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
-                      <YAxis tick={{ fill: isDarkMode ? '#9ca3af' : '#6b7280' }} />
-                      <Tooltip 
-                        formatter={(value) => [value, 'Visitantes']} 
-                        contentStyle={{
-                          backgroundColor: isDarkMode ? '#374151' : '#ffffff',
-                          border: `1px solid ${isDarkMode ? '#4b5563' : '#e5e7eb'}`,
-                          borderRadius: '8px',
-                          color: isDarkMode ? '#f9fafb' : '#111827'
-                        }}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="visitors" 
-                        stroke="#10B981" 
-                        strokeWidth={3}
-                        dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
             </div>
             </div>
             </div>
