@@ -12,6 +12,7 @@ import Product from "./pages/Product";
 import Integrations from "./pages/Integrations";
 import MetaDados from "./pages/MetaDados";
 import SavedVisualizations from "./pages/SavedVisualizations";
+import Settings from "./pages/Settings";
 import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 
@@ -46,6 +47,11 @@ const App = () => (
             <Route path="/product/saved-visualizations" element={
               <ProtectedRoute>
                 <SavedVisualizations />
+              </ProtectedRoute>
+            } />
+            <Route path="/product/settings" element={
+              <ProtectedRoute>
+                <Settings />
               </ProtectedRoute>
             } />
             <Route path="/oauth/callback" element={<OAuthCallback />} />
