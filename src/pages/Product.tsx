@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Dialog,
@@ -26,10 +27,13 @@ import {
   Sun,
   ArrowLeft,
   Plug,
-  Menu
+  Menu,
+  Save,
+  Tag
 } from 'lucide-react';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { useNavigate } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
 
 const Product = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
@@ -41,6 +45,7 @@ const Product = () => {
   ]);
 
   const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
   const [uploadType, setUploadType] = useState<'file' | 'url' | 'api'>('file');
   const [spreadsheetUrl, setSpreadsheetUrl] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -49,6 +54,11 @@ const Product = () => {
   const [selectedAdAccount, setSelectedAdAccount] = useState('');
   const [lastUploadedSheet, setLastUploadedSheet] = useState<{ url?: string; file?: File | null }>({});
   const [isAiLoading, setIsAiLoading] = useState(false);
+
+  // Save Dashboard states
+  const [dashboardName, setDashboardName] = useState('');
+  const [dashboardDescription, setDashboardDescription] = useState('');
+  const [dashboardTags, setDashboardTags] = useState('');
 
   // Mock data
   const salesData = [
@@ -351,6 +361,66 @@ const Product = () => {
     `;
   }
 
+  const handleSaveDashboard = async () => {
+    if (!dashboardName.trim()) {
+      toast({
+        title: "Erro",
+        description: "Por favor, insira um nome para a dashboard.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Aqui seria a chamada para o backend para salvar a dashboard
+      const dashboardData = {
+        name: dashboardName,
+        description: dashboardDescription,
+        tags: dashboardTags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        items: dashboardItems,
+        layouts: layouts,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      // Mock save - em produção, seria uma chamada para API
+      console.log('Salvando dashboard:', dashboardData);
+      
+      // Simular salvamento no localStorage por enquanto
+      const savedDashboards = JSON.parse(localStorage.getItem('saved-dashboards') || '[]');
+      const newDashboard = {
+        id: `dashboard_${Date.now()}`,
+        ...dashboardData,
+        type: 'dashboard',
+        isStarred: false,
+        thumbnail: 'dashboard-preview',
+        chartCount: dashboardItems.length
+      };
+      
+      savedDashboards.push(newDashboard);
+      localStorage.setItem('saved-dashboards', JSON.stringify(savedDashboards));
+
+      toast({
+        title: "Dashboard Salva!",
+        description: `"${dashboardName}" foi salva com sucesso.`,
+      });
+
+      // Limpar formulário e fechar modal
+      setDashboardName('');
+      setDashboardDescription('');
+      setDashboardTags('');
+      setIsSaveDialogOpen(false);
+
+    } catch (error) {
+      console.error('Erro ao salvar dashboard:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar a dashboard.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-slate-50 dark:bg-gray-900 transition-colors">
@@ -399,6 +469,81 @@ const Product = () => {
                       <ArrowLeft className="h-4 w-4 mr-2" />
                       Voltar
                     </Button>
+
+                    {/* Save Dashboard Button */}
+                    <Dialog open={isSaveDialogOpen} onOpenChange={setIsSaveDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="h-9 px-3 border-green-600 text-green-600 hover:bg-green-50 dark:border-green-500 dark:text-green-400 dark:hover:bg-green-900/20"
+                        >
+                          <Save className="h-4 w-4 mr-2" />
+                          Salvar Dashboard
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md dark:bg-gray-800 dark:border-gray-700">
+                        <DialogHeader>
+                          <DialogTitle className="dark:text-white">Salvar Dashboard</DialogTitle>
+                          <DialogDescription className="dark:text-gray-300">
+                            Salve sua dashboard atual para acessá-la posteriormente.
+                          </DialogDescription>
+                        </DialogHeader>
+                        
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium dark:text-gray-200">Nome da Dashboard *</label>
+                            <Input
+                              placeholder="Ex: Dashboard de Vendas Q4"
+                              value={dashboardName}
+                              onChange={(e) => setDashboardName(e.target.value)}
+                              className="dark:bg-gray-700 dark:border-gray-600"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium dark:text-gray-200">Descrição</label>
+                            <Textarea
+                              placeholder="Breve descrição da dashboard..."
+                              value={dashboardDescription}
+                              onChange={(e) => setDashboardDescription(e.target.value)}
+                              className="dark:bg-gray-700 dark:border-gray-600 min-h-[80px]"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <label className="text-sm font-medium dark:text-gray-200 flex items-center">
+                              <Tag className="h-4 w-4 mr-1" />
+                              Tags (separadas por vírgula)
+                            </label>
+                            <Input
+                              placeholder="vendas, trimestral, performance"
+                              value={dashboardTags}
+                              onChange={(e) => setDashboardTags(e.target.value)}
+                              className="dark:bg-gray-700 dark:border-gray-600"
+                            />
+                          </div>
+
+                          <div className="flex space-x-2">
+                            <Button 
+                              variant="outline" 
+                              onClick={() => setIsSaveDialogOpen(false)}
+                              className="flex-1"
+                            >
+                              Cancelar
+                            </Button>
+                            <Button 
+                              onClick={handleSaveDashboard}
+                              disabled={!dashboardName.trim()}
+                              className="flex-1 bg-green-600 hover:bg-green-700"
+                            >
+                              <Save className="w-4 h-4 mr-2" />
+                              Salvar
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
 
                     <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                       <DialogTrigger asChild>
