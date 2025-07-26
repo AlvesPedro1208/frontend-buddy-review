@@ -198,7 +198,7 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({
   };
 
   return (
-    <Card className={`h-full w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-200 ${className}`}>
+    <Card className={`h-full w-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 ${className}`}>
       {/* Widget Header */}
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 border-b border-gray-100 dark:border-gray-700 cursor-move">
         <div className="flex items-center">
