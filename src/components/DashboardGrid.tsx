@@ -107,21 +107,15 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
       <style>{`
         .dashboard-grid-container {
           position: relative;
-          background: #f8fafc;
-        }
-
-        .dark .dashboard-grid-container {
-          background: #0f172a;
         }
 
         .react-grid-layout {
           position: relative;
-          min-height: 100vh;
         }
 
         .react-grid-item {
-          transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
-          transition-property: left, top, transform;
+          transition: all 200ms ease;
+          transition-property: left, top;
         }
 
         .react-grid-item.cssTransforms {
@@ -134,13 +128,15 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
           height: 20px;
           bottom: 0;
           right: 0;
+          background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNiIgaGVpZ2h0PSI2IiB2aWV3Qm94PSIwIDAgNiA2IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZG90cyBmaWxsPSIjNmI3MjgwIiBvcGFjaXR5PSIwLjQiLz4KPHN2Zz4K');
+          background-position: bottom right;
           padding: 0 3px 3px 0;
           background-repeat: no-repeat;
           background-origin: content-box;
           box-sizing: border-box;
           cursor: se-resize;
           opacity: 0;
-          transition: opacity 0.3s ease;
+          transition: opacity 0.2s ease;
         }
 
         .react-grid-item:hover > .react-resizable-handle {
@@ -148,13 +144,12 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
         }
 
         .react-grid-item.react-grid-placeholder {
-          background: linear-gradient(135deg, #4f46e5, #7c3aed);
-          opacity: 0.15;
+          background: #3B82F6;
+          opacity: 0.2;
           transition-duration: 100ms;
           z-index: 2;
           user-select: none;
-          border-radius: 12px;
-          border: 2px dashed rgba(79, 70, 229, 0.4);
+          border-radius: 8px;
         }
 
         .react-grid-item > .react-resizable-handle::after {
@@ -162,24 +157,20 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
           position: absolute;
           right: 3px;
           bottom: 3px;
-          width: 12px;
-          height: 12px;
-          background: #6b7280;
-          border-radius: 2px;
-          opacity: 0.6;
-          mask: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none'%3e%3cpath d='M6 9l6 6 6-6' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e") no-repeat center;
-          mask-size: contain;
-          transform: rotate(-45deg);
+          width: 5px;
+          height: 5px;
+          border-right: 2px solid rgba(0, 0, 0, 0.4);
+          border-bottom: 2px solid rgba(0, 0, 0, 0.4);
         }
 
         .dark .react-grid-item > .react-resizable-handle::after {
-          background: #9ca3af;
+          border-right: 2px solid rgba(255, 255, 255, 0.4);
+          border-bottom: 2px solid rgba(255, 255, 255, 0.4);
         }
 
         .react-grid-item.react-draggable-dragging {
           transition: none;
           z-index: 3;
-          transform: rotate(2deg) !important;
         }
 
         .react-grid-item.react-resizable-resizing {
@@ -187,45 +178,15 @@ export const DashboardGrid: React.FC<DashboardGridProps> = ({
           z-index: 3;
         }
 
-        /* Grid item container */
+        /* Custom styles for better UX */
         .grid-item {
           overflow: hidden;
-          border-radius: 12px;
-          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.08);
+          border-radius: 8px;
         }
 
-        .grid-item:hover {
-          box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.12);
-        }
-
-        .dark .grid-item {
-          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
-        }
-
-        .dark .grid-item:hover {
-          box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.4);
-        }
-
-        /* Handle do drag - estilo Metabase */
-        .cursor-move {
-          cursor: grab;
-        }
-
-        .cursor-move:active {
-          cursor: grabbing;
-        }
-
-        /* Melhor indicador de resize */
-        .react-grid-item > .react-resizable-handle {
-          background: linear-gradient(135deg, transparent 40%, #e5e7eb 40%, #e5e7eb 60%, transparent 60%);
-          background-size: 8px 8px;
-          background-position: right bottom;
-        }
-
-        .dark .react-grid-item > .react-resizable-handle {
-          background: linear-gradient(135deg, transparent 40%, #374151 40%, #374151 60%, transparent 60%);
-          background-size: 8px 8px;
-          background-position: right bottom;
+        .react-grid-item.react-grid-placeholder {
+          background: linear-gradient(45deg, #3B82F6, #8B5CF6);
+          border-radius: 8px;
         }
       `}</style>
     </div>
