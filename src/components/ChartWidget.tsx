@@ -175,16 +175,25 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({
     const isPositive = !title.includes('Rejeição');
 
     return (
-      <div className="flex flex-col justify-center h-full p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-sm font-medium text-gray-600 dark:text-gray-300">{title}</div>
-          {getMetricIcon()}
+      <div className="flex flex-col h-full p-6 bg-white dark:bg-gray-900">
+        <div className="flex items-center justify-between mb-6">
+          <div className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            {title}
+          </div>
+          <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+            {getMetricIcon()}
+          </div>
         </div>
-        <div className="text-3xl font-bold dark:text-white mb-2">{getMetricValue()}</div>
-        <p className={`text-sm flex items-center ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-          <TrendingUp className="h-4 w-4 mr-1" />
-          {getMetricChange()}
-        </p>
+        
+        <div className="flex-1 flex flex-col justify-center">
+          <div className="text-4xl font-bold text-gray-900 dark:text-white mb-3">
+            {getMetricValue()}
+          </div>
+          <div className={`text-sm font-medium flex items-center ${isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+            <TrendingUp className="h-3.5 w-3.5 mr-1.5" />
+            {getMetricChange()}
+          </div>
+        </div>
       </div>
     );
   };
@@ -198,36 +207,37 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({
   };
 
   return (
-    <Card className={`h-full w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-200 ${className}`}>
-      {/* Widget Header */}
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 border-b border-gray-100 dark:border-gray-700 cursor-move">
-        <div className="flex items-center">
-          <GripVertical className="h-4 w-4 text-gray-400 mr-2" />
-          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white truncate flex items-center">
-            {getChartIcon()}
+    <Card className={`h-full w-full group bg-white dark:bg-gray-900 border-0 shadow-sm hover:shadow-md transition-all duration-300 rounded-lg overflow-hidden ${className}`}>
+      {/* Widget Header - Estilo Metabase */}
+      <div className="flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-700/50">
+        <div className="flex items-center cursor-move flex-1">
+          <div className="flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors mr-2">
+            <GripVertical className="h-4 w-4" />
+          </div>
+          <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate flex items-center">
+            {type === 'chart' && getChartIcon()}
             {title}
-          </CardTitle>
+          </h3>
         </div>
-        <div className="flex items-center space-x-1">
-          {onRemove && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onRemove(id)}
-              className="h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <X className="h-4 w-4 text-red-600 dark:text-red-400" />
-            </Button>
-          )}
-        </div>
-      </CardHeader>
+        
+        {onRemove && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onRemove(id)}
+            className="h-7 w-7 p-0 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all duration-200 rounded-md"
+          >
+            <X className="h-3.5 w-3.5 text-gray-400 hover:text-red-500" />
+          </Button>
+        )}
+      </div>
 
       {/* Widget Content */}
-      <CardContent className="flex-1 p-4 h-[calc(100%-80px)]">
+      <div className="p-4 h-[calc(100%-60px)] bg-white dark:bg-gray-900">
         <div className="h-full w-full">
           {renderChart()}
         </div>
-      </CardContent>
+      </div>
     </Card>
   );
 };

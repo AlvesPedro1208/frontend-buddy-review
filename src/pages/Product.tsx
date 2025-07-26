@@ -580,7 +580,7 @@ const Product = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-slate-50 dark:bg-gray-900 transition-colors">
+      <div className="min-h-screen flex w-full bg-gray-50 dark:bg-slate-900 transition-colors">
         <ResizablePanelGroup direction="horizontal" className="min-h-screen">
           <ResizablePanel defaultSize={16} minSize={12} maxSize={25}>
             <AppSidebar />
