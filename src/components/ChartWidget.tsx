@@ -200,7 +200,7 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({
   return (
     <Card className={`h-full w-full bg-white dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-200 ${className}`}>
       {/* Widget Header */}
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 border-b border-gray-100 dark:border-gray-700 cursor-move">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 cursor-move">
         <div className="flex items-center">
           <GripVertical className="h-4 w-4 text-gray-400 mr-2" />
           <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white truncate flex items-center">
