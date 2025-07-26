@@ -538,7 +538,7 @@ const Product = () => {
 
                     <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800">
+                        <Button className="bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-700 dark:hover:bg-blue-800 dark:text-white">
                           <Upload className="w-4 h-4 mr-2" />
                           Nova Planilha
                         </Button>
