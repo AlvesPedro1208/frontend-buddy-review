@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import Product from "./pages/Product";
 import Integrations from "./pages/Integrations";
 import MetaDados from "./pages/MetaDados";
+import SavedVisualizations from "./pages/SavedVisualizations";
 import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 
@@ -40,6 +41,11 @@ const App = () => (
             <Route path="/product/meta/dados" element={
               <ProtectedRoute>
                 <MetaDados />
+              </ProtectedRoute>
+            } />
+            <Route path="/product/saved-visualizations" element={
+              <ProtectedRoute>
+                <SavedVisualizations />
               </ProtectedRoute>
             } />
             <Route path="/oauth/callback" element={<OAuthCallback />} />

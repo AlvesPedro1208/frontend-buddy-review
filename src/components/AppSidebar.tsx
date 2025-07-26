@@ -11,7 +11,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Plug,
-  TrendingUp
+  TrendingUp,
+  BookmarkIcon
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -19,6 +20,7 @@ import { cn } from "@/lib/utils";
 
 const menuItems = [
   { title: "Dashboard", url: "/product", icon: BarChart3 },
+  { title: "Visualizações Salvas", url: "/product/saved-visualizations", icon: BookmarkIcon },
   { title: "Dados Disponíveis", url: "/product/meta/dados", icon: TrendingUp },
   { title: "Integrações", url: "/product/integrations", icon: Plug },
   { title: "Configurações", url: "/product/settings", icon: Settings },
