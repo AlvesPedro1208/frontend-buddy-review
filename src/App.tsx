@@ -13,6 +13,7 @@ import Integrations from "./pages/Integrations";
 import MetaDados from "./pages/MetaDados";
 import SavedVisualizations from "./pages/SavedVisualizations";
 import Settings from "./pages/Settings";
+import FunnelFlow from "./pages/FunnelFlow";
 import OAuthCallback from "./pages/OAuthCallback";
 import NotFound from "./pages/NotFound";
 
@@ -47,6 +48,11 @@ const App = () => (
             <Route path="/product/saved-visualizations" element={
               <ProtectedRoute>
                 <SavedVisualizations />
+              </ProtectedRoute>
+            } />
+            <Route path="/product/funnel-flow" element={
+              <ProtectedRoute>
+                <FunnelFlow />
               </ProtectedRoute>
             } />
             <Route path="/product/settings" element={

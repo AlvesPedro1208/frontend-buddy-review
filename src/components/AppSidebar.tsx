@@ -21,7 +21,8 @@ import { cn } from "@/lib/utils";
 const menuItems = [
   { title: "Dashboard", url: "/product", icon: BarChart3 },
   { title: "Visualizações Salvas", url: "/product/saved-visualizations", icon: BookmarkIcon },
-  { title: "Dados Disponíveis", url: "/product/meta/dados", icon: TrendingUp },
+  { title: "Fluxo de Funil", url: "/product/funnel-flow", icon: TrendingUp },
+  { title: "Dados Disponíveis", url: "/product/meta/dados", icon: Database },
   { title: "Integrações", url: "/product/integrations", icon: Plug },
   { title: "Configurações", url: "/product/settings", icon: Settings },
 ] as const;
