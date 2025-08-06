@@ -35,19 +35,27 @@ import { toast } from "sonner";
 const initialNodes: Node[] = [];
 const initialEdges: Edge[] = [];
 
-const nodeTypes = {
-  facebookAds: FunnelNodeTypes.FacebookAdsNode,
-  googleAds: FunnelNodeTypes.GoogleAdsNode,
-  vturb: FunnelNodeTypes.VTurbNode,
-  utmify: FunnelNodeTypes.UTMifyNode,
-  payt: FunnelNodeTypes.PaytNode,
-  custom: FunnelNodeTypes.CustomNode,
-};
+const createNodeTypes = (deleteNode: (id: string) => void) => ({
+  facebookAds: (props: any) => <FunnelNodeTypes.FacebookAdsNode {...props} onDelete={deleteNode} />,
+  googleAds: (props: any) => <FunnelNodeTypes.GoogleAdsNode {...props} onDelete={deleteNode} />,
+  vturb: (props: any) => <FunnelNodeTypes.VTurbNode {...props} onDelete={deleteNode} />,
+  utmify: (props: any) => <FunnelNodeTypes.UTMifyNode {...props} onDelete={deleteNode} />,
+  payt: (props: any) => <FunnelNodeTypes.PaytNode {...props} onDelete={deleteNode} />,
+  custom: (props: any) => <FunnelNodeTypes.CustomNode {...props} onDelete={deleteNode} />,
+});
 
 export default function FunnelFlow() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedNodeType, setSelectedNodeType] = useState<string | null>(null);
+
+  const deleteNode = useCallback((nodeId: string) => {
+    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+    setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+    toast.success('Nó removido do fluxo');
+  }, [setNodes, setEdges]);
+
+  const nodeTypes = useMemo(() => createNodeTypes(deleteNode), [deleteNode]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -119,11 +127,6 @@ export default function FunnelFlow() {
     toast.success(`${template.label} adicionado ao fluxo`);
   }, [setNodes]);
 
-  const deleteNode = useCallback((nodeId: string) => {
-    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
-    setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
-    toast.success('Nó removido do fluxo');
-  }, [setNodes, setEdges]);
 
   const saveFlow = useCallback(() => {
     const flowData = {
@@ -179,8 +182,44 @@ export default function FunnelFlow() {
           </header>
 
           <div className="flex-1 flex">
-            {/* Sidebar com componentes */}
-            <div className="w-80 border-r border-border bg-background p-4 overflow-y-auto">
+            {/* Editor de fluxo */}
+            <div className="flex-1 relative">
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
+                nodeTypes={nodeTypes}
+                connectionMode={ConnectionMode.Loose}
+                fitView
+                className="bg-background"
+              >
+                <Background />
+                <Controls />
+                <MiniMap />
+              </ReactFlow>
+              
+              {nodes.length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <Card className="p-8 text-center max-w-md">
+                    <CardContent>
+                      <div className="text-muted-foreground">
+                        <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <h3 className="text-lg font-medium mb-2">Crie seu fluxo de funil</h3>
+                        <p className="text-sm">
+                          Adicione componentes da barra lateral para começar a construir 
+                          seu fluxo de extração de dados.
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </div>
+
+            {/* Sidebar com componentes - agora na direita */}
+            <div className="w-80 border-l border-border bg-background p-4 overflow-y-auto">
               <div className="space-y-6">
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground mb-3">
@@ -264,42 +303,6 @@ export default function FunnelFlow() {
                   </CardContent>
                 </Card>
               </div>
-            </div>
-
-            {/* Editor de fluxo */}
-            <div className="flex-1 relative">
-              <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                nodeTypes={nodeTypes}
-                connectionMode={ConnectionMode.Loose}
-                fitView
-                className="bg-background"
-              >
-                <Background />
-                <Controls />
-                <MiniMap />
-              </ReactFlow>
-              
-              {nodes.length === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <Card className="p-8 text-center max-w-md">
-                    <CardContent>
-                      <div className="text-muted-foreground">
-                        <Settings className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <h3 className="text-lg font-medium mb-2">Crie seu fluxo de funil</h3>
-                        <p className="text-sm">
-                          Adicione componentes da barra lateral para começar a construir 
-                          seu fluxo de extração de dados.
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
             </div>
           </div>
         </div>

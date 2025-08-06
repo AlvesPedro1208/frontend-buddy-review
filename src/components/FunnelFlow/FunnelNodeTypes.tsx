@@ -31,7 +31,8 @@ const BaseNode = memo(({
   id, 
   icon: Icon, 
   color, 
-  onDelete 
+  onDelete,
+  ...props
 }: NodeProps & { 
   icon: any; 
   color: string;
@@ -113,7 +114,7 @@ const BaseNode = memo(({
   );
 });
 
-const FacebookAdsNode = memo((props: NodeProps) => (
+const FacebookAdsNode = memo((props: NodeProps & { onDelete?: (id: string) => void }) => (
   <BaseNode 
     {...props} 
     icon={Facebook} 
@@ -121,7 +122,7 @@ const FacebookAdsNode = memo((props: NodeProps) => (
   />
 ));
 
-const GoogleAdsNode = memo((props: NodeProps) => (
+const GoogleAdsNode = memo((props: NodeProps & { onDelete?: (id: string) => void }) => (
   <BaseNode 
     {...props} 
     icon={Globe} 
@@ -129,7 +130,7 @@ const GoogleAdsNode = memo((props: NodeProps) => (
   />
 ));
 
-const VTurbNode = memo((props: NodeProps) => (
+const VTurbNode = memo((props: NodeProps & { onDelete?: (id: string) => void }) => (
   <BaseNode 
     {...props} 
     icon={Settings} 
@@ -137,7 +138,7 @@ const VTurbNode = memo((props: NodeProps) => (
   />
 ));
 
-const UTMifyNode = memo((props: NodeProps) => (
+const UTMifyNode = memo((props: NodeProps & { onDelete?: (id: string) => void }) => (
   <BaseNode 
     {...props} 
     icon={Settings} 
@@ -145,7 +146,7 @@ const UTMifyNode = memo((props: NodeProps) => (
   />
 ));
 
-const PaytNode = memo((props: NodeProps) => (
+const PaytNode = memo((props: NodeProps & { onDelete?: (id: string) => void }) => (
   <BaseNode 
     {...props} 
     icon={CreditCard} 
@@ -153,7 +154,7 @@ const PaytNode = memo((props: NodeProps) => (
   />
 ));
 
-const CustomNode = memo((props: NodeProps) => (
+const CustomNode = memo((props: NodeProps & { onDelete?: (id: string) => void }) => (
   <BaseNode 
     {...props} 
     icon={Settings} 
