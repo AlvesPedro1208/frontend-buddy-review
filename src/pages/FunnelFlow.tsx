@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useMemo } from 'react';
 import {
   ReactFlow,
@@ -237,7 +238,7 @@ export default function FunnelFlow() {
                       nodeTypes={nodeTypes}
                       connectionMode={ConnectionMode.Loose}
                       fitView
-                      defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
+                      defaultViewport={{ x: 0, y: 0, zoom: 0.4 }}
                       minZoom={0.2}
                       maxZoom={2}
                       className="bg-background"
