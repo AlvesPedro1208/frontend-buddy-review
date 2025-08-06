@@ -11,7 +11,8 @@ import {
   ConnectionMode,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { AppSidebar } from "@/components/AppSidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -153,14 +154,20 @@ export default function FunnelFlow() {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <div className="flex flex-col h-full">
-          {/* Header */}
-          <div className="h-12 flex items-center border-b px-4 bg-background">
-            <SidebarTrigger className="mr-2" />
-            <h1 className="text-lg font-semibold">Fluxo de Funil</h1>
-          </div>
+      <div className="min-h-screen flex w-full bg-background">
+        <ResizablePanelGroup direction="horizontal" className="min-h-screen">
+          <ResizablePanel defaultSize={16} minSize={12} maxSize={25}>
+            <AppSidebar />
+          </ResizablePanel>
+          
+          <ResizableHandle withHandle />
+          
+          <ResizablePanel defaultSize={84} minSize={75}>
+            <div className="flex flex-col h-full">
+              {/* Header */}
+              <div className="h-12 flex items-center border-b px-4 bg-background">
+                <h1 className="text-lg font-semibold">Fluxo de Funil</h1>
+              </div>
               
               <div className="flex-1 flex">
                 {/* Main Flow Editor */}
@@ -305,8 +312,10 @@ export default function FunnelFlow() {
                   </div>
                 </div>
               </div>
-        </div>
-      </SidebarInset>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
     </SidebarProvider>
   );
 }
