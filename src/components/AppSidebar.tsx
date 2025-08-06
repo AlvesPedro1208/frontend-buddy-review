@@ -6,7 +6,7 @@ import {
   Globe,
   Facebook,
   Instagram,
-  Linkedin,
+  Grid3x3,
   ChevronDown,
   ChevronRight,
   ChevronLeft,
@@ -35,7 +35,7 @@ const integrationItems = [
   { title: "Facebook Ads", icon: Facebook },
   { title: "Google Ads", icon: Globe },
   { title: "Instagram", icon: Instagram },
-  { title: "Outras Plataformas", icon: Linkedin },
+  { title: "Outras Plataformas", icon: Grid3x3 },
 ] as const;
 
 export function AppSidebar() {
