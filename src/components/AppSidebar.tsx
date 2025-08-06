@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useCallback } from "react";
 import {
   Settings,
@@ -55,15 +54,15 @@ export function AppSidebar() {
   }, []);
 
   return (
-    <div className="h-full bg-sidebar border-r border-sidebar-border flex flex-col">
+    <div className="h-full bg-background border-r border-border flex flex-col">
       {/* Header with Toggle */}
-      <div className="p-4 border-b border-sidebar-border flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-sidebar-foreground">Menu</h2>
+      <div className="p-4 border-b border-border flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-foreground">Menu</h2>
         <Button
           variant="ghost"
           size="sm"
           onClick={toggleSidebar}
-          className="h-7 w-7 p-0 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className="h-7 w-7 p-0"
         >
           {state === "expanded" ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
         </Button>
@@ -73,7 +72,7 @@ export function AppSidebar() {
       <div className="flex-1 p-4 overflow-y-auto">
         {/* Main Navigation */}
         <div className="space-y-2 mb-6">
-          <h3 className="text-xs font-medium text-sidebar-foreground/70 uppercase tracking-wider mb-3">
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
             Navegação
           </h3>
           {menuItems.map((item) => (
@@ -86,8 +85,8 @@ export function AppSidebar() {
                 <div className={cn(
                   "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 cursor-pointer",
                   isActive 
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium shadow-sm"
-                    : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                    ? "bg-accent text-accent-foreground font-medium shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
                 )}>
                   <item.icon className="h-4 w-4 flex-shrink-0" />
                   <span className="text-sm">{item.title}</span>
@@ -104,7 +103,7 @@ export function AppSidebar() {
             onOpenChange={handleIntegrationsToggle}
           >
             <CollapsibleTrigger asChild>
-              <button className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-medium text-sidebar-foreground/70 uppercase tracking-wider hover:text-sidebar-foreground transition-colors duration-200">
+              <button className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors duration-200">
                 <span>Integrações Ativas</span>
                 <ChevronDown className={cn(
                   "h-3 w-3 transition-transform duration-200",
@@ -116,7 +115,7 @@ export function AppSidebar() {
               {integrationItems.map((item) => (
                 <div 
                   key={item.title}
-                  className="flex items-center gap-3 px-6 py-2 text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/30 rounded-md transition-all duration-200 cursor-pointer"
+                  className="flex items-center gap-3 px-6 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/30 rounded-md transition-all duration-200 cursor-pointer"
                 >
                   <item.icon className="h-3 w-3 flex-shrink-0" />
                   <span>{item.title}</span>
