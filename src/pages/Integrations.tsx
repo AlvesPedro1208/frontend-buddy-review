@@ -43,7 +43,7 @@ import { AppSidebar } from '@/components/AppSidebar';
 interface Integration {
   id: string;
   name: string;
-  type: 'facebook' | 'google' | 'instagram' | 'linkedin';
+  type: 'facebook' | 'google' | 'instagram' | 'other';
   status: 'connected' | 'disconnected' | 'error';
   apiKey?: string;
   accessToken?: string;
@@ -558,6 +558,138 @@ const Integrations = () => {
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal OAuth Facebook */}
+        <Dialog open={isOAuthDialogOpen} onOpenChange={setIsOAuthDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Conectar Facebook Ads</DialogTitle>
+              <DialogDescription>
+                Gerencie suas integrações com o Facebook Ads
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Seleção de usuário */}
+              <div className="flex items-center space-x-3">
+                <select
+                  value={selectedFacebookId || ''}
+                  onChange={(e) => setSelectedFacebookId(e.target.value || null)}
+                  className="px-3 py-2 border rounded-md text-sm bg-background flex-1"
+                >
+                  <option value="">Selecionar usuário do Facebook</option>
+                  {users.map((user) => (
+                    <option key={user.facebook_id} value={user.facebook_id}>
+                      {user.username}
+                    </option>
+                  ))}
+                </select>
+                
+                <Button onClick={handleSearchAccounts} disabled={!selectedFacebookId || loading}>
+                  <Search className="h-4 w-4 mr-2" />
+                  {loading ? 'Buscando...' : 'Buscar Contas'}
+                </Button>
+              </div>
+
+              {/* Barra de busca */}
+              {accounts.length > 0 && (
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Buscar contas..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              )}
+
+              {/* Estado de loading */}
+              {loading && (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p>Carregando contas do Facebook...</p>
+                </div>
+              )}
+
+              {/* Lista de contas */}
+              {!loading && paginatedAccounts.length > 0 && (
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground">
+                    Encontradas {filteredAccounts.length} contas
+                  </div>
+                  
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {paginatedAccounts.map((account) => (
+                      <div key={account.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 rounded-lg bg-blue-600">
+                            <Facebook className="h-4 w-4 text-white" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium">{account.name || account.nome_conta}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              ID: {account.account_id || account.identificador_conta}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={account.ativo || false}
+                            onCheckedChange={(checked) => handleToggleIntegration(String(account.id), checked)}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Paginação */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        Página {currentPage} de {totalPages}
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handlePreviousPage}
+                          disabled={currentPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          Anterior
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleNextPage}
+                          disabled={currentPage === totalPages}
+                        >
+                          Próxima
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Estado vazio */}
+              {!loading && hasSearched && paginatedAccounts.length === 0 && (
+                <div className="text-center py-8">
+                  <AlertCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Nenhuma conta encontrada</h3>
+                  <p className="text-gray-500">
+                    {filteredAccounts.length === 0 && searchTerm 
+                      ? "Tente alterar o termo de busca" 
+                      : "Não foram encontradas contas para este usuário"}
+                  </p>
+                </div>
+              )}
+            </div>
           </DialogContent>
         </Dialog>
       </div>
