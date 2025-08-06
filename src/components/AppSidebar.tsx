@@ -12,11 +12,14 @@ import {
   ChevronLeft,
   Plug,
   TrendingUp,
-  BookmarkIcon
+  BookmarkIcon,
+  PanelLeftClose,
+  PanelLeft
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
@@ -36,6 +39,7 @@ const integrationItems = [
 ] as const;
 
 export function AppSidebar() {
+  const { toggleSidebar, state } = useSidebar();
   const location = useLocation();
   const [integrationsOpen, setIntegrationsOpen] = useState(true);
 
@@ -54,7 +58,14 @@ export function AppSidebar() {
       {/* Header with Toggle */}
       <div className="p-4 border-b border-border flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground">Menu</h2>
-        <SidebarTrigger />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleSidebar}
+          className="h-7 w-7 p-0"
+        >
+          {state === "expanded" ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
+        </Button>
       </div>
 
       {/* Content */}
