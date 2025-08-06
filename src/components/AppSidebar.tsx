@@ -1,4 +1,3 @@
-
 import { useState, useMemo, useCallback } from "react";
 import {
   Settings,
@@ -40,14 +39,11 @@ const integrationItems = [
 ] as const;
 
 export function AppSidebar() {
-  const { state, toggleSidebar } = useSidebar();
+  const { toggleSidebar, state } = useSidebar();
   const location = useLocation();
   const [integrationsOpen, setIntegrationsOpen] = useState(true);
 
   const currentPath = location.pathname;
-  const isCollapsed = state === "collapsed";
-
-  console.log('Sidebar state:', state, 'isCollapsed:', isCollapsed);
 
   const isActive = useCallback((path: string) => {
     return currentPath === path || (path === "/product" && currentPath === "/product");
@@ -57,28 +53,18 @@ export function AppSidebar() {
     setIntegrationsOpen(prev => !prev);
   }, []);
 
-  const handleToggleSidebar = useCallback(() => {
-    console.log('Toggle button clicked, current state:', state);
-    toggleSidebar();
-  }, [toggleSidebar, state]);
-
   return (
-    <div className={cn(
-      "h-full bg-background border-r border-border flex flex-col transition-all duration-200",
-      isCollapsed ? "w-16" : "w-64"
-    )}>
+    <div className="h-full bg-background border-r border-border flex flex-col">
       {/* Header with Toggle */}
       <div className="p-4 border-b border-border flex items-center justify-between">
-        {!isCollapsed && (
-          <h2 className="text-lg font-semibold text-foreground">Menu</h2>
-        )}
+        <h2 className="text-lg font-semibold text-foreground">Menu</h2>
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleToggleSidebar}
-          className="h-7 w-7 p-0 shrink-0"
+          onClick={toggleSidebar}
+          className="h-7 w-7 p-0"
         >
-          {isCollapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          {state === "expanded" ? <PanelLeftClose className="h-4 w-4" /> : <PanelLeft className="h-4 w-4" />}
         </Button>
       </div>
 
@@ -86,11 +72,9 @@ export function AppSidebar() {
       <div className="flex-1 p-4 overflow-y-auto">
         {/* Main Navigation */}
         <div className="space-y-2 mb-6">
-          {!isCollapsed && (
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
-              Navegação
-            </h3>
-          )}
+          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+            Navegação
+          </h3>
           {menuItems.map((item) => (
             <NavLink
               key={item.title}
@@ -98,20 +82,14 @@ export function AppSidebar() {
               end={item.url === "/product"}
             >
               {({ isActive }) => (
-                <div 
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 cursor-pointer",
-                    isActive 
-                      ? "bg-accent text-accent-foreground font-medium shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
-                    isCollapsed && "justify-center"
-                  )}
-                  title={isCollapsed ? item.title : undefined}
-                >
+                <div className={cn(
+                  "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 cursor-pointer",
+                  isActive 
+                    ? "bg-accent text-accent-foreground font-medium shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                )}>
                   <item.icon className="h-4 w-4 flex-shrink-0" />
-                  {!isCollapsed && (
-                    <span className="text-sm">{item.title}</span>
-                  )}
+                  <span className="text-sm">{item.title}</span>
                 </div>
               )}
             </NavLink>
@@ -119,38 +97,36 @@ export function AppSidebar() {
         </div>
 
         {/* Integrations Section */}
-        {!isCollapsed && (
-          <div className="space-y-2">
-            <Collapsible 
-              open={integrationsOpen} 
-              onOpenChange={handleIntegrationsToggle}
-            >
-              <CollapsibleTrigger asChild>
-                <button className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors duration-200">
-                  <span>Integrações Ativas</span>
-                  <ChevronDown className={cn(
-                    "h-3 w-3 transition-transform duration-200",
-                    integrationsOpen && "rotate-180"
-                  )} />
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="space-y-1 mt-2">
-                {integrationItems.map((item) => (
-                  <div 
-                    key={item.title}
-                    className="flex items-center gap-3 px-6 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/30 rounded-md transition-all duration-200 cursor-pointer"
-                  >
-                    <item.icon className="h-3 w-3 flex-shrink-0" />
-                    <span>{item.title}</span>
-                    <div className="ml-auto">
-                      <div className="w-2 h-2 bg-green-500 rounded-full" />
-                    </div>
+        <div className="space-y-2">
+          <Collapsible 
+            open={integrationsOpen} 
+            onOpenChange={handleIntegrationsToggle}
+          >
+            <CollapsibleTrigger asChild>
+              <button className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors duration-200">
+                <span>Integrações Ativas</span>
+                <ChevronDown className={cn(
+                  "h-3 w-3 transition-transform duration-200",
+                  integrationsOpen && "rotate-180"
+                )} />
+              </button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-1 mt-2">
+              {integrationItems.map((item) => (
+                <div 
+                  key={item.title}
+                  className="flex items-center gap-3 px-6 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/30 rounded-md transition-all duration-200 cursor-pointer"
+                >
+                  <item.icon className="h-3 w-3 flex-shrink-0" />
+                  <span>{item.title}</span>
+                  <div className="ml-auto">
+                    <div className="w-2 h-2 bg-green-500 rounded-full" />
                   </div>
-                ))}
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
-        )}
+                </div>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
+        </div>
       </div>
     </div>
   );
