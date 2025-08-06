@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useMemo } from 'react';
 import {
   ReactFlow,
@@ -371,4 +370,3 @@ export default function FunnelFlow() {
     </SidebarProvider>
   );
 }
-```
