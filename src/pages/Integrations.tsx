@@ -269,6 +269,49 @@ const Integrations = () => {
     setIsOAuthDialogOpen(true);
   };
 
+  const handleFacebookOAuth = () => {
+    const oauthUrl = FacebookOAuthService.getOAuthUrl();
+    
+    // Abrir em popup para melhor UX
+    const popup = window.open(
+      oauthUrl,
+      'facebook_oauth',
+      'width=600,height=600,scrollbars=yes,resizable=yes'
+    );
+
+    // Escutar mensagens do popup
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'OAUTH_SUCCESS') {
+        popup?.close();
+        setIsOAuthDialogOpen(false);
+        toast({
+          title: "Sucesso!",
+          description: "Facebook conectado com sucesso.",
+        });
+        // Recarregar dados
+        window.location.reload();
+      } else if (event.data.type === 'OAUTH_ERROR') {
+        popup?.close();
+        setIsOAuthDialogOpen(false);
+        toast({
+          title: "Erro",
+          description: "Erro ao conectar com o Facebook.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    // Cleanup
+    const checkClosed = setInterval(() => {
+      if (popup?.closed) {
+        clearInterval(checkClosed);
+        window.removeEventListener('message', handleMessage);
+      }
+    }, 1000);
+  };
+
   const handleOtherPlatformsClick = () => {
     setIsOtherPlatformsOpen(true);
   };
@@ -563,132 +606,62 @@ const Integrations = () => {
 
         {/* Modal OAuth Facebook */}
         <Dialog open={isOAuthDialogOpen} onOpenChange={setIsOAuthDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Conectar Facebook Ads</DialogTitle>
-              <DialogDescription>
-                Gerencie suas integrações com o Facebook Ads
+              <DialogTitle className="flex items-center justify-center space-x-2">
+                <div className="p-2 bg-blue-600 rounded-full">
+                  <Facebook className="h-6 w-6 text-white" />
+                </div>
+                <span>Conectar Facebook Ads</span>
+              </DialogTitle>
+              <DialogDescription className="text-center">
+                Escolha como deseja conectar sua conta Facebook Ads para importar dados de campanhas
               </DialogDescription>
             </DialogHeader>
             
-            <div className="space-y-6">
-              {/* Seleção de usuário */}
-              <div className="flex items-center space-x-3">
-                <select
-                  value={selectedFacebookId || ''}
-                  onChange={(e) => setSelectedFacebookId(e.target.value || null)}
-                  className="px-3 py-2 border rounded-md text-sm bg-background flex-1"
-                >
-                  <option value="">Selecionar usuário do Facebook</option>
-                  {users.map((user) => (
-                    <option key={user.facebook_id} value={user.facebook_id}>
-                      {user.username}
-                    </option>
-                  ))}
-                </select>
-                
-                <Button onClick={handleSearchAccounts} disabled={!selectedFacebookId || loading}>
-                  <Search className="h-4 w-4 mr-2" />
-                  {loading ? 'Buscando...' : 'Buscar Contas'}
-                </Button>
+            <div className="space-y-4 py-4">
+              {/* Botão principal - Continuar neste navegador */}
+              <Button 
+                onClick={handleFacebookOAuth}
+                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center space-x-2"
+              >
+                <Globe className="h-5 w-5" />
+                <span>Continuar neste navegador</span>
+              </Button>
+              
+              <div className="text-center text-sm text-muted-foreground">
+                Será aberta uma nova janela para autenticação segura com o Facebook
               </div>
-
-              {/* Barra de busca */}
-              {accounts.length > 0 && (
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <Input
-                    placeholder="Buscar contas..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
                 </div>
-              )}
-
-              {/* Estado de loading */}
-              {loading && (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p>Carregando contas do Facebook...</p>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">OU</span>
                 </div>
-              )}
-
-              {/* Lista de contas */}
-              {!loading && paginatedAccounts.length > 0 && (
-                <div className="space-y-4">
-                  <div className="text-sm text-muted-foreground">
-                    Encontradas {filteredAccounts.length} contas
-                  </div>
-                  
-                  <div className="space-y-2 max-h-60 overflow-y-auto">
-                    {paginatedAccounts.map((account) => (
-                      <div key={account.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="p-2 rounded-lg bg-blue-600">
-                            <Facebook className="h-4 w-4 text-white" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium">{account.name || account.nome_conta}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              ID: {account.account_id || account.identificador_conta}
-                            </p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2">
-                          <Switch
-                            checked={account.ativo || false}
-                            onCheckedChange={(checked) => handleToggleIntegration(String(account.id), checked)}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Paginação */}
-                  {totalPages > 1 && (
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-muted-foreground">
-                        Página {currentPage} de {totalPages}
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handlePreviousPage}
-                          disabled={currentPage === 1}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
-                          Anterior
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleNextPage}
-                          disabled={currentPage === totalPages}
-                        >
-                          Próxima
-                          <ChevronRight className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Estado vazio */}
-              {!loading && hasSearched && paginatedAccounts.length === 0 && (
-                <div className="text-center py-8">
-                  <AlertCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Nenhuma conta encontrada</h3>
-                  <p className="text-gray-500">
-                    {filteredAccounts.length === 0 && searchTerm 
-                      ? "Tente alterar o termo de busca" 
-                      : "Não foram encontradas contas para este usuário"}
-                  </p>
-                </div>
-              )}
+              </div>
+              
+              {/* Botão secundário - Copiar link */}
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  const oauthUrl = FacebookOAuthService.getOAuthUrl();
+                  navigator.clipboard.writeText(oauthUrl);
+                  toast({
+                    title: "Link copiado!",
+                    description: "Cole o link em um navegador com múltiplas contas.",
+                  });
+                }}
+                className="w-full h-12 border-2 border-dashed flex items-center justify-center space-x-2"
+              >
+                <Settings className="h-5 w-5" />
+                <span>Copiar link para navegador multilogin</span>
+              </Button>
+              
+              <div className="text-center text-xs text-muted-foreground">
+                Use esta opção para conectar em um navegador com múltiplas contas ou compartilhar com colaboradores
+              </div>
             </div>
           </DialogContent>
         </Dialog>
