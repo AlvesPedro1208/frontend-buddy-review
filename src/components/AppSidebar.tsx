@@ -35,7 +35,7 @@ const integrationItems = [
   { title: "Facebook Ads", icon: Facebook },
   { title: "Google Ads", icon: Globe },
   { title: "Instagram", icon: Instagram },
-  { title: "Outras Integrações", icon: Linkedin },
+  { title: "Outras Plataformas", icon: Linkedin },
 ] as const;
 
 export function AppSidebar() {
