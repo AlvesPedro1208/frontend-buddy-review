@@ -168,7 +168,6 @@ export default function FunnelFlow() {
           </Button>
         </div>
 
-        {/* Editor de fluxo */}
         <div className="flex-1 relative">
           <ReactFlow
             nodes={nodes}
@@ -181,8 +180,6 @@ export default function FunnelFlow() {
             fitView
             className="bg-background"
           >
-            <Background />
-            <MiniMap />
           </ReactFlow>
           
           {nodes.length === 0 && (
