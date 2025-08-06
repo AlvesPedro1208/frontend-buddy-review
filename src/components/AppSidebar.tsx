@@ -16,7 +16,17 @@ import {
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { 
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarHeader
+} from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
@@ -50,73 +60,75 @@ export function AppSidebar() {
   }, []);
 
   return (
-    <div className="h-full bg-background border-r border-border flex flex-col">
-      {/* Header with Toggle */}
-      <div className="p-4 border-b border-border flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-foreground">Menu</h2>
-        <SidebarTrigger />
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 p-4 overflow-y-auto">
-        {/* Main Navigation */}
-        <div className="space-y-2 mb-6">
-          <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
-            Navegação
-          </h3>
-          {menuItems.map((item) => (
-            <NavLink
-              key={item.title}
-              to={item.url}
-              end={item.url === "/product"}
-            >
-              {({ isActive }) => (
-                <div className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200 cursor-pointer",
-                  isActive 
-                    ? "bg-accent text-accent-foreground font-medium shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
-                )}>
-                  <item.icon className="h-4 w-4 flex-shrink-0" />
-                  <span className="text-sm">{item.title}</span>
-                </div>
-              )}
-            </NavLink>
-          ))}
+    <Sidebar variant="inset">
+      <SidebarHeader>
+        <div className="p-4 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground">Menu</h2>
         </div>
+      </SidebarHeader>
+      
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      end={item.url === "/product"}
+                      className={({ isActive }) => cn(
+                        "flex items-center gap-3 px-3 py-2 rounded-md transition-all duration-200",
+                        isActive 
+                          ? "bg-accent text-accent-foreground font-medium shadow-sm"
+                          : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                      )}
+                    >
+                      <item.icon className="h-4 w-4 flex-shrink-0" />
+                      <span className="text-sm">{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
-        {/* Integrations Section */}
-        <div className="space-y-2">
+        <SidebarGroup>
           <Collapsible 
             open={integrationsOpen} 
             onOpenChange={handleIntegrationsToggle}
           >
             <CollapsibleTrigger asChild>
-              <button className="flex items-center gap-2 w-full text-left px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider hover:text-foreground transition-colors duration-200">
+              <SidebarGroupLabel className="group/label cursor-pointer hover:text-foreground">
                 <span>Integrações Ativas</span>
                 <ChevronDown className={cn(
-                  "h-3 w-3 transition-transform duration-200",
+                  "ml-auto h-3 w-3 transition-transform duration-200",
                   integrationsOpen && "rotate-180"
                 )} />
-              </button>
+              </SidebarGroupLabel>
             </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-1 mt-2">
-              {integrationItems.map((item) => (
-                <div 
-                  key={item.title}
-                  className="flex items-center gap-3 px-6 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/30 rounded-md transition-all duration-200 cursor-pointer"
-                >
-                  <item.icon className="h-3 w-3 flex-shrink-0" />
-                  <span>{item.title}</span>
-                  <div className="ml-auto">
-                    <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  </div>
-                </div>
-              ))}
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {integrationItems.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton className="w-full pl-6">
+                        <item.icon className="h-3 w-3 flex-shrink-0" />
+                        <span className="text-sm">{item.title}</span>
+                        <div className="ml-auto">
+                          <div className="w-2 h-2 bg-green-500 rounded-full" />
+                        </div>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
             </CollapsibleContent>
           </Collapsible>
-        </div>
-      </div>
-    </div>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
   );
 }
