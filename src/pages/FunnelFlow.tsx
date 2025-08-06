@@ -1,3 +1,4 @@
+
 import { useState, useCallback, useMemo } from 'react';
 import {
   ReactFlow,
@@ -43,10 +44,20 @@ const createNodeTypes = (deleteNode: (id: string) => void) => ({
   custom: (props: any) => <FunnelNodeTypes.CustomNode {...props} onDelete={deleteNode} />,
 });
 
+type NodeTemplate = {
+  id: string;
+  type: string;
+  label: string;
+  icon: any;
+  category: 'TOPO' | 'MEIO' | 'FUNDO';
+  description: string;
+  color: string;
+};
+
 export default function FunnelFlow() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [selectedNodeType, setSelectedNodeType] = useState<string | null>(null);
+  const [draggedItem, setDraggedItem] = useState<NodeTemplate | null>(null);
 
   const deleteNode = useCallback((nodeId: string) => {
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
@@ -61,7 +72,7 @@ export default function FunnelFlow() {
     [setEdges]
   );
 
-  const nodeTemplates = useMemo(() => [
+  const [nodeTemplates, setNodeTemplates] = useState<NodeTemplate[]>([
     {
       id: 'facebook-ads',
       type: 'facebookAds',
@@ -107,9 +118,36 @@ export default function FunnelFlow() {
       description: 'Dados do checkout Payt',
       color: 'bg-red-500',
     },
-  ], []);
+  ]);
 
-  const addNode = useCallback((template: typeof nodeTemplates[0]) => {
+  const handleDragStart = (e: React.DragEvent, template: NodeTemplate) => {
+    setDraggedItem(template);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetCategory: 'TOPO' | 'MEIO' | 'FUNDO') => {
+    e.preventDefault();
+    
+    if (!draggedItem) return;
+
+    setNodeTemplates(prev => 
+      prev.map(template => 
+        template.id === draggedItem.id 
+          ? { ...template, category: targetCategory }
+          : template
+      )
+    );
+
+    setDraggedItem(null);
+    toast.success(`${draggedItem.label} movido para ${targetCategory}`);
+  };
+
+  const addNode = useCallback((template: NodeTemplate) => {
     const newNode: Node = {
       id: `${template.type}-${Date.now()}`,
       type: template.type,
@@ -125,7 +163,6 @@ export default function FunnelFlow() {
     setNodes((nds) => nds.concat(newNode));
     toast.success(`${template.label} adicionado ao fluxo`);
   }, [setNodes]);
-
 
   const saveFlow = useCallback(() => {
     const flowData = {
@@ -235,7 +272,12 @@ export default function FunnelFlow() {
                       
                       <div className="space-y-4">
                         {['TOPO', 'MEIO', 'FUNDO'].map((category) => (
-                          <div key={category}>
+                          <div 
+                            key={category}
+                            onDragOver={handleDragOver}
+                            onDrop={(e) => handleDrop(e, category as 'TOPO' | 'MEIO' | 'FUNDO')}
+                            className="min-h-[100px] p-2 border-2 border-dashed border-transparent hover:border-blue-300 transition-colors rounded-lg"
+                          >
                             <h4 className="text-xs font-medium text-muted-foreground uppercase mb-2">
                               {category}
                             </h4>
@@ -245,8 +287,10 @@ export default function FunnelFlow() {
                                 .map((template) => (
                                   <Card 
                                     key={template.id}
-                                    className="cursor-pointer hover:bg-accent transition-colors"
+                                    className="cursor-pointer hover:bg-accent transition-colors select-none"
                                     onClick={() => addNode(template)}
+                                    draggable
+                                    onDragStart={(e) => handleDragStart(e, template)}
                                   >
                                     <CardContent className="p-3">
                                       <div className="flex items-start gap-3">
@@ -269,6 +313,12 @@ export default function FunnelFlow() {
                                     </CardContent>
                                   </Card>
                                 ))}
+                              
+                              {nodeTemplates.filter((template) => template.category === category).length === 0 && (
+                                <div className="text-xs text-muted-foreground text-center py-4 border border-dashed rounded">
+                                  Solte os cards aqui
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
