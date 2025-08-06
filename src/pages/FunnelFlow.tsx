@@ -236,7 +236,7 @@ export default function FunnelFlow() {
                       onConnect={onConnect}
                       nodeTypes={nodeTypes}
                       connectionMode={ConnectionMode.Loose}
-                      defaultViewport={{ x: 200, y: 100, zoom: 0.25 }}
+                      defaultViewport={{ x: 200, y: 100, zoom: 0.5 }}
                       minZoom={0.1}
                       maxZoom={2}
                       className="bg-background"
