@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
@@ -50,9 +51,10 @@ export function AppSidebar() {
 
   return (
     <div className="h-full bg-background border-r border-border flex flex-col">
-      {/* Header */}
-      <div className="p-4 border-b border-border">
+      {/* Header with Toggle */}
+      <div className="p-4 border-b border-border flex items-center justify-between">
         <h2 className="text-lg font-semibold text-foreground">Menu</h2>
+        <SidebarTrigger />
       </div>
 
       {/* Content */}
