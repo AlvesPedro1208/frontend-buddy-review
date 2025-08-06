@@ -9,9 +9,7 @@ import { CalendarIcon, Download, Filter, Search, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
-import { AppSidebar } from '@/components/AppSidebar';
+import { ProductLayout } from '@/components/ProductLayout';
 import { useToast } from "@/components/ui/use-toast";
 import { getContas, ContaAPI } from '@/services/integrations';
 import { getAllFacebookUsers, FacebookUser } from '@/services/oauth';
@@ -257,31 +255,8 @@ const MetaDados = () => {
   const currentData = filteredData.slice(startIndex, endIndex);
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        <ResizablePanelGroup direction="horizontal" className="min-h-screen">
-          <ResizablePanel defaultSize={16} minSize={12} maxSize={25}>
-            <AppSidebar />
-          </ResizablePanel>
-          
-          <ResizableHandle withHandle />
-          
-          <ResizablePanel defaultSize={84} minSize={75}>
-            <div className="flex flex-col h-full">
-              {/* Header */}
-              <header className="bg-card border-b border-border p-6">
-                <div className="max-w-7xl mx-auto">
-                  <h1 className="text-3xl font-bold text-foreground">Dados da Meta Ads</h1>
-                  <p className="text-muted-foreground mt-1">
-                    Visualize os dados brutos das suas campanhas importadas da Meta Ads.
-                  </p>
-                </div>
-              </header>
-
-              {/* Main Content */}
-              <main className="flex-1 p-6 overflow-y-auto">
-                <div className="max-w-7xl mx-auto space-y-6">
-
+    <ProductLayout title="Dados da Meta Ads">
+      <div className="space-y-6">
         {/* Filtros */}
         <Card>
           <CardHeader>
@@ -572,13 +547,8 @@ const MetaDados = () => {
             </Pagination>
           </div>
         )}
-                </div>
-              </main>
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
       </div>
-    </SidebarProvider>
+    </ProductLayout>
   );
 };
 
