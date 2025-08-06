@@ -36,7 +36,9 @@ import {
 import { FacebookOAuthService, getAllFacebookUsers, getUserAdAccountsFromBackend, FacebookUser, FacebookAccount } from '@/services/oauth';
 import { getContas } from '@/services/integrations';
 import { useToast } from '@/hooks/use-toast';
-import { ProductLayout } from '@/components/ProductLayout';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import { AppSidebar } from '@/components/AppSidebar';
 
 interface Integration {
   id: string;
@@ -289,384 +291,409 @@ const Integrations = () => {
   };
 
   return (
-    <ProductLayout title="Integrações">
-      <div className="space-y-8">
-        {/* Available Integrations */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {integrationTypes.map((type) => {
-            const Icon = type.icon;
-            const isFacebook = type.type === 'facebook';
-            
-            return (
-              <Card 
-                key={type.type} 
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => isFacebook ? handleOAuthIntegration(type) : handleAddIntegration(type)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <div className={`p-2 rounded-lg ${type.color}`}>
-                      <Icon className="h-5 w-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 dark:text-white">
-                        {type.name}
-                      </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {isFacebook ? 'Conecte suas contas automaticamente' : type.description}
-                      </p>
-                    </div>
-                    <Plus className="h-4 w-4 text-gray-400" />
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* Integrações Ativas */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-lg font-semibold">Integrações Ativas</h2>
-              <p className="text-sm text-muted-foreground">Gerencie suas conexões ativas</p>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <select
-                value={selectedFacebookId || ''}
-                onChange={(e) => setSelectedFacebookId(e.target.value || null)}
-                className="px-3 py-2 border rounded-md text-sm bg-background"
-              >
-                <option value="">Selecionar usuário</option>
-                {users.map((user) => (
-                  <option key={user.facebook_id} value={user.facebook_id}>
-                    {user.username}
-                  </option>
-                ))}
-              </select>
-              
-              <Button onClick={handleSearchAccounts} disabled={!selectedFacebookId}>
-                <Search className="h-4 w-4 mr-2" />
-                {loading ? 'Buscando...' : 'Buscar Contas'}
-              </Button>
-            </div>
-          </div>
-
-          {/* Lista de contas */}
-          {!loading && !selectedFacebookId && (
-            <div className="text-center py-8">
-              <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Selecione um usuário</h3>
-              <p className="text-gray-500">Escolha um usuário para visualizar suas integrações.</p>
-            </div>
-          )}
-
-          {loading && (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p>Carregando contas...</p>
-            </div>
-          )}
-
-          {!loading && paginatedAccounts.length > 0 && (
-            <div className="divide-y">
-              {paginatedAccounts.map((conta) => (
-                <div key={conta.id} className="py-4 flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-2 rounded-lg bg-blue-600">
-                      <Facebook className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium">{conta.name || conta.nome_conta}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        ID: {conta.account_id || conta.identificador_conta}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Switch
-                      checked={conta.ativo}
-                      onCheckedChange={(checked) => handleToggleIntegration(String(conta.id), checked)}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteIntegration(conta.id)}
-                      className="text-red-600"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Modal para Outras Plataformas */}
-      <Dialog open={isOtherPlatformsOpen} onOpenChange={setIsOtherPlatformsOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Outras Plataformas</DialogTitle>
-            <DialogDescription>
-              Escolha uma plataforma para conectar
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            {otherPlatforms.map((platform) => {
-              const Icon = platform.icon;
-              return (
-                <Card 
-                  key={platform.id}
-                  className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => handleOtherPlatformSelect(platform)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${platform.color}`}>
-                        <Icon className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-medium text-gray-900 dark:text-white">
-                          {platform.name}
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {platform.description}
-                        </p>
-                      </div>
-                      <Plus className="h-4 w-4 text-gray-400" />
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal para configuração de integração normal */}
-      <Dialog open={isDialogOpen && !selectedOtherPlatform} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {selectedIntegrationType ? `Conectar ${selectedIntegrationType.name}` : 'Nova Integração'}
-            </DialogTitle>
-            <DialogDescription>
-              Preencha os dados necessários para conectar sua conta.
-            </DialogDescription>
-          </DialogHeader>
-          {selectedIntegrationType && (
-            <div className="space-y-4">
-              {selectedIntegrationType.fields.map((field) => (
-                <div key={field.key}>
-                  <Label htmlFor={field.key}>{field.label}</Label>
-                  <Input
-                    id={field.key}
-                    value={formData[field.key] || ''}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      [field.key]: e.target.value
-                    }))}
-                    placeholder={`Digite ${field.label.toLowerCase()}`}
-                    required={field.required}
-                  />
-                </div>
-              ))}
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button>
-                  Conectar
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal para configuração de outras plataformas */}
-      <Dialog open={isDialogOpen && !!selectedOtherPlatform} onOpenChange={(open) => {
-        setIsDialogOpen(open);
-        if (!open) setSelectedOtherPlatform(null);
-      }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {selectedOtherPlatform ? `Conectar ${selectedOtherPlatform.name}` : 'Nova Integração'}
-            </DialogTitle>
-            <DialogDescription>
-              Preencha os dados necessários para conectar sua conta.
-            </DialogDescription>
-          </DialogHeader>
-          {selectedOtherPlatform && (
-            <div className="space-y-4">
-              {selectedOtherPlatform.fields.map((field) => (
-                <div key={field.key}>
-                  <Label htmlFor={field.key}>{field.label}</Label>
-                  <Input
-                    id={field.key}
-                    value={formData[field.key] || ''}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      [field.key]: e.target.value
-                    }))}
-                    placeholder={`Digite ${field.label.toLowerCase()}`}
-                    required={field.required}
-                  />
-                </div>
-              ))}
-              <div className="flex justify-end space-x-2 pt-4">
-                <Button variant="outline" onClick={() => {
-                  setIsDialogOpen(false);
-                  setSelectedOtherPlatform(null);
-                }}>
-                  Cancelar
-                </Button>
-                <Button>
-                  Conectar
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Modal OAuth Facebook */}
-      <Dialog open={isOAuthDialogOpen} onOpenChange={setIsOAuthDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Conectar Facebook Ads</DialogTitle>
-            <DialogDescription>
-              Gerencie suas integrações com o Facebook Ads
-            </DialogDescription>
-          </DialogHeader>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <ResizablePanelGroup direction="horizontal" className="min-h-screen">
+          <ResizablePanel defaultSize={16} minSize={12} maxSize={25}>
+            <AppSidebar />
+          </ResizablePanel>
           
-          <div className="space-y-6">
-            {/* Seleção de usuário */}
-            <div className="flex items-center space-x-3">
-              <select
-                value={selectedFacebookId || ''}
-                onChange={(e) => setSelectedFacebookId(e.target.value || null)}
-                className="px-3 py-2 border rounded-md text-sm bg-background flex-1"
-              >
-                <option value="">Selecionar usuário do Facebook</option>
-                {users.map((user) => (
-                  <option key={user.facebook_id} value={user.facebook_id}>
-                    {user.username}
-                  </option>
-                ))}
-              </select>
-              
-              <Button onClick={handleSearchAccounts} disabled={!selectedFacebookId || loading}>
-                <Search className="h-4 w-4 mr-2" />
-                {loading ? 'Buscando...' : 'Buscar Contas'}
-              </Button>
-            </div>
-
-            {/* Barra de busca */}
-            {accounts.length > 0 && (
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Buscar contas..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            )}
-
-            {/* Estado de loading */}
-            {loading && (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p>Carregando contas do Facebook...</p>
-              </div>
-            )}
-
-            {/* Lista de contas */}
-            {!loading && paginatedAccounts.length > 0 && (
-              <div className="space-y-4">
-                <div className="text-sm text-muted-foreground">
-                  Encontradas {filteredAccounts.length} contas
+          <ResizableHandle withHandle />
+          
+          <ResizablePanel defaultSize={84} minSize={75}>
+            <div className="flex flex-col h-full">
+              <header className="bg-card border-b border-border p-6">
+                <div className="max-w-7xl mx-auto">
+                  <h1 className="text-3xl font-bold text-foreground">Integrações</h1>
+                  <p className="text-muted-foreground mt-1">
+                    Conecte suas contas de anúncios e plataformas para importar dados automaticamente.
+                  </p>
                 </div>
-                
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {paginatedAccounts.map((account) => (
-                    <div key={account.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 rounded-lg bg-blue-600">
-                          <Facebook className="h-4 w-4 text-white" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium">{account.name || account.nome_conta}</h4>
-                          <p className="text-sm text-muted-foreground">
-                            ID: {account.account_id || account.identificador_conta}
-                          </p>
-                        </div>
+              </header>
+
+              <main className="flex-1 p-6 overflow-y-auto">
+                <div className="max-w-7xl mx-auto space-y-8">
+                  {/* Available Integrations */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {integrationTypes.map((type) => {
+                      const Icon = type.icon;
+                      const isFacebook = type.type === 'facebook';
+                      
+                      return (
+                        <Card 
+                          key={type.type} 
+                          className="cursor-pointer hover:shadow-md transition-shadow"
+                          onClick={() => isFacebook ? handleOAuthIntegration(type) : handleAddIntegration(type)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center space-x-3">
+                              <div className={`p-2 rounded-lg ${type.color}`}>
+                                <Icon className="h-5 w-5 text-white" />
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="font-medium text-gray-900 dark:text-white">
+                                  {type.name}
+                                </h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">
+                                  {isFacebook ? 'Conecte suas contas automaticamente' : type.description}
+                                </p>
+                              </div>
+                              <Plus className="h-4 w-4 text-gray-400" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+
+                  {/* Integrações Ativas */}
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <div>
+                        <h2 className="text-lg font-semibold">Integrações Ativas</h2>
+                        <p className="text-sm text-muted-foreground">Gerencie suas conexões ativas</p>
                       </div>
                       
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          checked={account.ativo || false}
-                          onCheckedChange={(checked) => handleToggleIntegration(String(account.id), checked)}
-                        />
+                      <div className="flex items-center space-x-3">
+                        <select
+                          value={selectedFacebookId || ''}
+                          onChange={(e) => setSelectedFacebookId(e.target.value || null)}
+                          className="px-3 py-2 border rounded-md text-sm bg-background"
+                        >
+                          <option value="">Selecionar usuário</option>
+                          {users.map((user) => (
+                            <option key={user.facebook_id} value={user.facebook_id}>
+                              {user.username}
+                            </option>
+                          ))}
+                        </select>
+                        
+                        <Button onClick={handleSearchAccounts} disabled={!selectedFacebookId}>
+                          <Search className="h-4 w-4 mr-2" />
+                          {loading ? 'Buscando...' : 'Buscar Contas'}
+                        </Button>
                       </div>
                     </div>
-                  ))}
-                </div>
 
-                {/* Paginação */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      Página {currentPage} de {totalPages}
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handlePreviousPage}
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                        Anterior
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleNextPage}
-                        disabled={currentPage === totalPages}
-                      >
-                        Próxima
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    {/* Lista de contas */}
+                    {!loading && !selectedFacebookId && (
+                      <div className="text-center py-8">
+                        <Settings className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                        <h3 className="text-lg font-medium mb-2">Selecione um usuário</h3>
+                        <p className="text-gray-500">Escolha um usuário para visualizar suas integrações.</p>
+                      </div>
+                    )}
+
+                    {loading && (
+                      <div className="text-center py-8">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p>Carregando contas...</p>
+                      </div>
+                    )}
+
+                    {!loading && paginatedAccounts.length > 0 && (
+                      <div className="divide-y">
+                        {paginatedAccounts.map((conta) => (
+                          <div key={conta.id} className="py-4 flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <div className="p-2 rounded-lg bg-blue-600">
+                                <Facebook className="h-5 w-5 text-white" />
+                              </div>
+                              <div>
+                                <h3 className="font-medium">{conta.name || conta.nome_conta}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                  ID: {conta.account_id || conta.identificador_conta}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center space-x-2">
+                              <Switch
+                                checked={conta.ativo}
+                                onCheckedChange={(checked) => handleToggleIntegration(String(conta.id), checked)}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteIntegration(conta.id)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              </main>
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
 
-            {/* Estado vazio */}
-            {!loading && hasSearched && paginatedAccounts.length === 0 && (
-              <div className="text-center py-8">
-                <AlertCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium mb-2">Nenhuma conta encontrada</h3>
-                <p className="text-gray-500">
-                  {filteredAccounts.length === 0 && searchTerm 
-                    ? "Tente alterar o termo de busca" 
-                    : "Não foram encontradas contas para este usuário"}
-                </p>
+        {/* Modal para Outras Plataformas */}
+        <Dialog open={isOtherPlatformsOpen} onOpenChange={setIsOtherPlatformsOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Outras Plataformas</DialogTitle>
+              <DialogDescription>
+                Escolha uma plataforma para conectar
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              {otherPlatforms.map((platform) => {
+                const Icon = platform.icon;
+                return (
+                  <Card 
+                    key={platform.id}
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => handleOtherPlatformSelect(platform)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-lg ${platform.color}`}>
+                          <Icon className="h-5 w-5 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium text-gray-900 dark:text-white">
+                            {platform.name}
+                          </h3>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {platform.description}
+                          </p>
+                        </div>
+                        <Plus className="h-4 w-4 text-gray-400" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal para configuração de integração normal */}
+        <Dialog open={isDialogOpen && !selectedOtherPlatform} onOpenChange={setIsDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {selectedIntegrationType ? `Conectar ${selectedIntegrationType.name}` : 'Nova Integração'}
+              </DialogTitle>
+              <DialogDescription>
+                Preencha os dados necessários para conectar sua conta.
+              </DialogDescription>
+            </DialogHeader>
+            {selectedIntegrationType && (
+              <div className="space-y-4">
+                {selectedIntegrationType.fields.map((field) => (
+                  <div key={field.key}>
+                    <Label htmlFor={field.key}>{field.label}</Label>
+                    <Input
+                      id={field.key}
+                      value={formData[field.key] || ''}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        [field.key]: e.target.value
+                      }))}
+                      placeholder={`Digite ${field.label.toLowerCase()}`}
+                      required={field.required}
+                    />
+                  </div>
+                ))}
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancelar
+                  </Button>
+                  <Button>
+                    Conectar
+                  </Button>
+                </div>
               </div>
             )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </ProductLayout>
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal para configuração de outras plataformas */}
+        <Dialog open={isDialogOpen && !!selectedOtherPlatform} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) setSelectedOtherPlatform(null);
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {selectedOtherPlatform ? `Conectar ${selectedOtherPlatform.name}` : 'Nova Integração'}
+              </DialogTitle>
+              <DialogDescription>
+                Preencha os dados necessários para conectar sua conta.
+              </DialogDescription>
+            </DialogHeader>
+            {selectedOtherPlatform && (
+              <div className="space-y-4">
+                {selectedOtherPlatform.fields.map((field) => (
+                  <div key={field.key}>
+                    <Label htmlFor={field.key}>{field.label}</Label>
+                    <Input
+                      id={field.key}
+                      value={formData[field.key] || ''}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        [field.key]: e.target.value
+                      }))}
+                      placeholder={`Digite ${field.label.toLowerCase()}`}
+                      required={field.required}
+                    />
+                  </div>
+                ))}
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button variant="outline" onClick={() => {
+                    setIsDialogOpen(false);
+                    setSelectedOtherPlatform(null);
+                  }}>
+                    Cancelar
+                  </Button>
+                  <Button>
+                    Conectar
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal OAuth Facebook */}
+        <Dialog open={isOAuthDialogOpen} onOpenChange={setIsOAuthDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Conectar Facebook Ads</DialogTitle>
+              <DialogDescription>
+                Gerencie suas integrações com o Facebook Ads
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-6">
+              {/* Seleção de usuário */}
+              <div className="flex items-center space-x-3">
+                <select
+                  value={selectedFacebookId || ''}
+                  onChange={(e) => setSelectedFacebookId(e.target.value || null)}
+                  className="px-3 py-2 border rounded-md text-sm bg-background flex-1"
+                >
+                  <option value="">Selecionar usuário do Facebook</option>
+                  {users.map((user) => (
+                    <option key={user.facebook_id} value={user.facebook_id}>
+                      {user.username}
+                    </option>
+                  ))}
+                </select>
+                
+                <Button onClick={handleSearchAccounts} disabled={!selectedFacebookId || loading}>
+                  <Search className="h-4 w-4 mr-2" />
+                  {loading ? 'Buscando...' : 'Buscar Contas'}
+                </Button>
+              </div>
+
+              {/* Barra de busca */}
+              {accounts.length > 0 && (
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Buscar contas..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              )}
+
+              {/* Estado de loading */}
+              {loading && (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <p>Carregando contas do Facebook...</p>
+                </div>
+              )}
+
+              {/* Lista de contas */}
+              {!loading && paginatedAccounts.length > 0 && (
+                <div className="space-y-4">
+                  <div className="text-sm text-muted-foreground">
+                    Encontradas {filteredAccounts.length} contas
+                  </div>
+                  
+                  <div className="space-y-2 max-h-60 overflow-y-auto">
+                    {paginatedAccounts.map((account) => (
+                      <div key={account.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="p-2 rounded-lg bg-blue-600">
+                            <Facebook className="h-4 w-4 text-white" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium">{account.name || account.nome_conta}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              ID: {account.account_id || account.identificador_conta}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2">
+                          <Switch
+                            checked={account.ativo || false}
+                            onCheckedChange={(checked) => handleToggleIntegration(String(account.id), checked)}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Paginação */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-muted-foreground">
+                        Página {currentPage} de {totalPages}
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handlePreviousPage}
+                          disabled={currentPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          Anterior
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleNextPage}
+                          disabled={currentPage === totalPages}
+                        >
+                          Próxima
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Estado vazio */}
+              {!loading && hasSearched && paginatedAccounts.length === 0 && (
+                <div className="text-center py-8">
+                  <AlertCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Nenhuma conta encontrada</h3>
+                  <p className="text-gray-500">
+                    {filteredAccounts.length === 0 && searchTerm 
+                      ? "Tente alterar o termo de busca" 
+                      : "Não foram encontradas contas para este usuário"}
+                  </p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </SidebarProvider>
   );
 };
 
