@@ -103,7 +103,7 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <section id="inicio" className="pt-24 pb-32 px-6 min-h-[85vh] flex items-center">
+      <section id="inicio" className="pt-24 pb-24 px-6 min-h-[70vh] flex items-center">
         <div className="container mx-auto text-center max-w-4xl">
           <div className="animate-fade-in">
             <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
