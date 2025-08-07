@@ -106,7 +106,7 @@ const Index = () => {
       <section id="inicio" className="pt-24 pb-24 px-6 min-h-[70vh] flex items-center">
         <div className="container mx-auto text-center max-w-4xl">
           <div className="animate-fade-in">
-            <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent leading-tight">
+            <h1 className="text-5xl md:text-7xl font-bold mb-8 text-blue-600 dark:text-blue-400 leading-tight">
               O Futuro é Agora
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed transition-colors duration-300">
