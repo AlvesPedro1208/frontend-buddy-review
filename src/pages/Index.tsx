@@ -103,13 +103,13 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <section id="inicio" className="pt-24 pb-16 px-6">
+      <section id="inicio" className="pt-24 pb-32 px-6 min-h-[85vh] flex items-center">
         <div className="container mx-auto text-center max-w-4xl">
           <div className="animate-fade-in">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+            <h1 className="text-5xl md:text-7xl font-bold mb-8 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
               O Futuro é Agora
             </h1>
-            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed transition-colors duration-300">
+            <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-12 max-w-3xl mx-auto leading-relaxed transition-colors duration-300">
               Revolucione sua forma de trabalhar com nossa plataforma inovadora. 
               Tecnologia de ponta para resultados extraordinários.
             </p>
