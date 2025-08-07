@@ -14,13 +14,23 @@ import {
   TrendingUp,
   BookmarkIcon,
   PanelLeftClose,
-  PanelLeft
+  PanelLeft,
+  User,
+  LogOut
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const menuItems = [
   { title: "Dashboard", url: "/product", icon: BarChart3 },
@@ -42,6 +52,7 @@ export function AppSidebar() {
   const { toggleSidebar, state } = useSidebar();
   const location = useLocation();
   const [integrationsOpen, setIntegrationsOpen] = useState(true);
+  const { user, logout } = useAuth();
 
   const currentPath = location.pathname;
 
@@ -127,6 +138,36 @@ export function AppSidebar() {
             </CollapsibleContent>
           </Collapsible>
         </div>
+      </div>
+
+      {/* User Section at Bottom */}
+      <div className="p-4 border-t border-border">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="w-full justify-start gap-3 h-auto p-3">
+              <div className="h-8 w-8 bg-primary rounded-full flex items-center justify-center">
+                <User className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <div className="flex flex-col items-start text-left">
+                <span className="text-sm font-medium">{user?.name}</span>
+                <span className="text-xs text-muted-foreground">{user?.email}</span>
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 bg-background border border-border z-50">
+            <div className="flex items-center justify-start gap-2 p-2">
+              <div className="flex flex-col space-y-1 leading-none">
+                <p className="font-medium">{user?.name}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
+              </div>
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={logout} className="cursor-pointer">
+              <LogOut className="mr-2 h-4 w-4" />
+              Sair
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
